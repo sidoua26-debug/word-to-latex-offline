@@ -1,0 +1,117 @@
+# Word to LaTeX (Offline) — Chrome & Microsoft Edge Extension
+
+A browser extension (Manifest V3) that converts `.docx` (Microsoft Word) files and pasted rich/plain text directly to clean, paste-ready LaTeX entirely client-side using [Pandoc WASM](https://github.com/pandoc/pandoc-wasm). No server calls, no native binaries — works fully offline once installed.
+
+## Features
+
+- **100% Offline & Private**: All processing happens in-browser via WebAssembly. Your documents and clipboard contents never leave your machine.
+- **Two Conversion Modes**:
+  - **Upload File**: Select and convert local `.docx` files.
+  - **Paste Content**: Paste formatted content, tables, or text from Word, Google Docs, or web pages into a `contenteditable` container. Preserves formatting (bold, italic, tables, lists, headers) via `text/html` clipboard data, with graceful fallback to markdown/plain text.
+- **Paste-Ready Output**: Produces a LaTeX fragment (no `\documentclass` / `\begin{document}` wrapper) ready to paste directly into an existing document body.
+- **Auto-Cleanup Pipeline**:
+  - Removes bare `\tightlist` lines.
+  - Recursively unwraps `\pandocbounded{...}` commands while tracking brace depth.
+  - Collapses 3+ consecutive blank lines down to 2 and trims trailing whitespace.
+  - Detects required packages (`booktabs`, `longtable`, `graphicx`, `hyperref`) and prepends a `% Required packages` comment block.
+- **Instant Copy**: Automatically copies the converted LaTeX to clipboard with visual confirmation and source indication (e.g. `Converted from: pasted HTML`).
+
+## Prerequisites
+
+- **Node.js** ≥ 18
+- **npm** (comes with Node.js)
+- **Google Chrome** or **Microsoft Edge**
+
+## Setup & Build
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build the extension
+npm run build
+```
+
+This compiles TypeScript, bundles all code and WASI shims with `esbuild`, and copies `pandoc.wasm`, icons, and static assets into the `dist/` directory.
+
+## Load in Microsoft Edge or Chrome (Unpacked Extension)
+
+1. Open Microsoft Edge (`edge://extensions`) or Google Chrome (`chrome://extensions`).
+2. Enable **Developer mode** (toggle in the left or top-right menu).
+3. Click **Load unpacked**.
+4. Select the `dist/` folder inside this project.
+5. Pin "Word to LaTeX (Offline)" to your browser toolbar and click it to open the popup.
+
+## Usage
+
+1. Open the popup by clicking the extension icon.
+2. Choose your input mode:
+   - **Upload File**: Select a `.docx` file and click **Convert to LaTeX**.
+   - **Paste Content**: Paste rich text, a table, or type into the box, then click **Convert Pasted Content**.
+3. The converted LaTeX will appear in the output textarea and automatically copy to your clipboard.
+4. Paste directly into your LaTeX document!
+
+## Publishing to Microsoft Edge Add-ons & Chrome Web Store
+
+Everything needed for store submission is prepared and automated:
+
+- **Complete Store Listing Metadata**: See [`STORE.md`](STORE.md) for full descriptions, feature bullets, search keywords, single-purpose statement, and certification notes for store reviewers.
+- **Icon Generation**: Run `node scripts/generate-icons.mjs` to rebuild icons at `16x16`, `32x32`, `48x48`, `128x128` (solid-background variant for store compatibility), and `300x300` (Edge Add-ons listing logo) from the master vector [`assets/logo.svg`](assets/logo.svg).
+- **Screenshots**: Live 1280x800 browser screenshots captured using Chromium automation are located in [`assets/screenshots/`](assets/screenshots/). Re-run `node scripts/capture-screenshots.mjs` to regenerate.
+- **Promotional Tiles**: High-resolution store featuring tiles are located in [`assets/promo/`](assets/promo/) (`440x280` small tile and `920x680` large tile). Re-run `node scripts/generate-promos.mjs` to regenerate.
+- **Landing Page & Privacy Policy**:
+  - Landing page: [`landing-page.html`](landing-page.html) (responsive, light/dark mode aware, shows live screenshots and feature overview).
+  - Privacy policy: [`privacy-policy.html`](privacy-policy.html) (details zero data collection, offline WASM architecture, and ephemeral memory model).
+- **Packaging Zip**:
+  ```bash
+  npm run package
+  ```
+  Creates `word-to-latex-offline.zip` in the root folder, ready to upload to the Microsoft Edge Partner Center or Chrome Web Store Developer Dashboard.
+
+## Running Tests
+
+```bash
+npm test
+```
+
+Runs all unit tests (cleanup pipeline, clipboard format detection, pandoc-wasm convert branching).
+
+## Project Structure
+
+```
+word-to-latex-extension/
+├── assets/
+│   ├── logo.svg            # Master vector logo
+│   ├── icons/              # 16, 32, 48, 128 (solid), 300 (solid) PNG icons
+│   ├── screenshots/        # 1280x800 real browser UI screenshots
+│   └── promo/              # 440x280 & 920x680 Edge Store promotional tiles
+├── src/
+│   ├── popup.html          # Extension popup UI (tabs, file input, contenteditable)
+│   ├── popup.css           # Popup styling
+│   ├── popup.ts            # UI controller, tab switching & clipboard handlers
+│   ├── pandocCore.ts       # Pure Pandoc conversion logic & format branching
+│   ├── pandocWasm.ts       # Pandoc WASM initializer & runtime loader
+│   ├── cleanup.ts          # Pure-function LaTeX post-processing pipeline
+│   ├── clipboardDetect.ts  # Clipboard data inspection (HTML vs Markdown)
+│   └── manifest.json       # Manifest V3 configuration with icons & wasm CSP
+├── scripts/
+│   ├── generate-icons.mjs      # Vector-to-raster icon exporter
+│   ├── generate-promos.mjs     # Promotional tile generator
+│   └── capture-screenshots.mjs # Playwright browser screenshot automation
+├── tests/
+│   ├── cleanup.test.ts         # Unit tests for LaTeX cleanup routines
+│   ├── clipboardDetect.test.ts # Unit tests for clipboard format detection
+│   └── pandocWasm.test.ts      # Unit tests for convertToLatex branching
+├── dist/                   # Built extension directory (load this in browser)
+├── landing-page.html       # Self-contained marketing landing page
+├── privacy-policy.html     # Static privacy policy
+├── STORE.md                # Edge Add-ons Partner Center submission copy & checklist
+├── esbuild.config.mjs      # Bundling script & asset copying
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+## License
+
+MIT

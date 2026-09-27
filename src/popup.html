@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word to LaTeX</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Word → LaTeX</h1>
+    <p class="subtitle">Offline conversion powered by Pandoc WASM</p>
+
+    <!-- Tab navigation -->
+    <div class="tab-bar">
+      <button type="button" class="tab-btn active" id="tab-upload">Upload File</button>
+      <button type="button" class="tab-btn" id="tab-paste">Paste Content</button>
+    </div>
+
+    <!-- Upload mode section -->
+    <div class="tab-panel active" id="panel-upload">
+      <div class="file-input-wrapper">
+        <label for="docx-file" class="file-label">
+          <span class="file-icon">📄</span>
+          <span id="file-name">Choose a .docx file…</span>
+        </label>
+        <input type="file" id="docx-file" accept=".docx" />
+      </div>
+
+      <button id="convert-btn" class="primary-btn" disabled>
+        <span class="btn-text">Convert to LaTeX</span>
+        <span class="btn-spinner" hidden>
+          <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" dur="0.8s" from="0 12 12" to="360 12 12" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          Converting…
+        </span>
+      </button>
+    </div>
+
+    <!-- Paste mode section -->
+    <div class="tab-panel" id="panel-paste" hidden>
+      <div class="paste-input-wrapper">
+        <div
+          id="paste-input"
+          class="paste-area"
+          contenteditable="true"
+          role="textbox"
+          aria-multiline="true"
+          data-placeholder="Paste text, a table, or formatted content here..."
+        ></div>
+      </div>
+
+      <button id="convert-paste-btn" class="primary-btn" disabled>
+        <span class="btn-text">Convert Pasted Content</span>
+        <span class="btn-spinner" hidden>
+          <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" dur="0.8s" from="0 12 12" to="360 12 12" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          Converting…
+        </span>
+      </button>
+    </div>
+
+    <div id="status" class="status" hidden></div>
+
+    <!-- Shared Output Section -->
+    <div class="output-wrapper" id="output-wrapper" hidden>
+      <div class="output-header">
+        <div class="output-title-group">
+          <span>LaTeX Output</span>
+          <span id="source-indicator" class="source-indicator"></span>
+        </div>
+        <button id="copy-btn" class="copy-btn" title="Copy to clipboard">📋 Copy</button>
+      </div>
+      <textarea id="output" readonly></textarea>
+      <div id="copied-toast" class="toast" hidden>✓ Copied to clipboard!</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="docGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="foldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#93C5FD" />
+      <stop offset="100%" stop-color="#60A5FA" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+    <filter id="shadow" x="-8%" y="-8%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.25" />
+    </filter>
+    <filter id="foldShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="-4" dy="6" stdDeviation="6" flood-color="#1E3A8A" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Document Sheet with folded top-right corner -->
+  <g filter="url(#shadow)">
+    <!-- Base page path (512x512 canvas, page spans x: 64 to 448, y: 48 to 464) -->
+    <!-- Corner fold starts at (336, 48) and cuts down to (448, 160) -->
+    <path d="M 96,48 
+             L 336,48 
+             L 448,160 
+             L 448,440 
+             A 24,24 0 0,1 424,464 
+             L 120,464 
+             A 24,24 0 0,1 96,440 
+             Z" 
+          fill="url(#docGrad)" />
+
+    <!-- Corner flap -->
+    <path d="M 336,48 
+             L 336,136 
+             A 24,24 0 0,0 360,160 
+             L 448,160 
+             Z" 
+          fill="url(#foldGrad)" 
+          filter="url(#foldShadow)" />
+  </g>
+
+  <!-- Subtle document structure lines in top left -->
+  <rect x="144" y="104" width="80" height="12" rx="6" fill="#93C5FD" opacity="0.6" />
+  <rect x="144" y="132" width="140" height="10" rx="5" fill="#93C5FD" opacity="0.4" />
+
+  <!-- Center Emblem: Stylized dropped/raised "L A T E X" typographic emblem -->
+  <!-- Serif typographic glyphs with distinctive baseline offsets -->
+  <g id="latex-emblem" fill="#FFFFFF">
+    <!-- 'L' -->
+    <text x="136" y="324" font-family="'Times New Roman', 'Nimbus Roman No9 L', 'Georgia', serif" font-size="120" font-weight="bold">L</text>
+    
+    <!-- 'A' (raised and slightly smaller) -->
+    <text x="210" y="278" font-family="'Times New Roman', 'Nimbus Roman No9 L', 'Georgia', serif" font-size="86" font-weight="bold">A</text>
+    
+    <!-- 'T' -->
+    <text x="264" y="324" font-family="'Times New Roman', 'Nimbus Roman No9 L', 'Georgia', serif" font-size="120" font-weight="bold">T</text>
+    
+    <!-- 'E' (dropped lower) -->
+    <text x="328" y="356" font-family="'Times New Roman', 'Nimbus Roman No9 L', 'Georgia', serif" font-size="112" font-weight="bold">E</text>
+    
+    <!-- 'X' -->
+    <text x="388" y="324" font-family="'Times New Roman', 'Nimbus Roman No9 L', 'Georgia', serif" font-size="120" font-weight="bold">X</text>
+  </g>
+
+  <!-- Code/Formula Sub-accent badge at bottom: "\offline" -->
+  <g transform="translate(144, 388)">
+    <rect x="0" y="0" width="224" height="40" rx="10" fill="#0F172A" opacity="0.45" />
+    <!-- Terminal / TeX slash + lambda or script tag -->
+    <circle cx="24" cy="20" r="5" fill="#38BDF8" />
+    <text x="40" y="26" font-family="'Fira Code', 'SF Mono', 'Consolas', monospace" font-size="20" font-weight="bold" fill="#E2E8F0" letter-spacing="1">\offline</text>
+  </g>
+</svg>

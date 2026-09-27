@@ -55,7 +55,7 @@ Whether drafting mathematical papers, preparing thesis chapters, or converting t
 - **Privacy Policy URL**:
   `https://your-domain-or-github-io.com/privacy-policy.html`
 - **Support Contact Email**:
-  `support@wordtolatex.offline`
+  `sidoua26@gmail.com`
 
 ---
 

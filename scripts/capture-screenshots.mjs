@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -53,25 +53,52 @@ try {
 
   const popupUrl = `chrome-extension://${extId}/popup.html`;
 
-  // Helper to frame the popup inside a realistic 1280x800 browser canvas
+  // Helper to frame the popup inside an exact, perfectly centered canvas with a premium backdrop
   async function captureFramedPopup(page, outFileName, description) {
-    // Inject styling so popup is presented elegantly centered inside a 1280x800 canvas
     await page.evaluate(() => {
-      document.documentElement.style.height = '100%';
-      document.body.style.display = 'flex';
-      document.body.style.alignItems = 'center';
-      document.body.style.justifyContent = 'center';
-      document.body.style.height = '100vh';
-      document.body.style.margin = '0';
-      document.body.style.background = 'radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 100%)';
+      // Reset html and body
+      const html = document.documentElement;
+      const body = document.body;
 
+      html.style.margin = '0';
+      html.style.padding = '0';
+      html.style.width = '1280px';
+      html.style.height = '800px';
+      html.style.overflow = 'hidden';
+
+      body.style.margin = '0';
+      body.style.padding = '0';
+      body.style.width = '1280px';
+      body.style.height = '800px';
+      body.style.overflow = 'hidden';
+      body.style.display = 'flex';
+      body.style.alignItems = 'center';
+      body.style.justifyContent = 'center';
+
+      // Clean, modern, high-end mesh gradient background with subtle grid
+      body.style.background = `
+        radial-gradient(circle at 18% 20%, rgba(37, 99, 235, 0.45) 0%, transparent 45%),
+        radial-gradient(circle at 82% 75%, rgba(14, 165, 233, 0.35) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)
+      `;
+
+      // Popup card container styling
       const container = document.querySelector('.container');
       if (container) {
         container.style.width = '460px';
-        container.style.borderRadius = '16px';
+        container.style.maxHeight = '720px';
+        container.style.overflowY = 'visible';
+        container.style.borderRadius = '18px';
         container.style.background = '#ffffff';
-        container.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+        container.style.boxShadow = '0 30px 60px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 80px -20px rgba(56, 189, 248, 0.25)';
         container.style.padding = '24px';
+        container.style.boxSizing = 'border-box';
+      }
+
+      // Ensure textarea fits comfortably inside 720px container
+      const textarea = document.getElementById('output');
+      if (textarea) {
+        textarea.style.height = '180px';
       }
     });
 
@@ -87,7 +114,6 @@ try {
   await page1.goto(popupUrl);
   await page1.waitForLoadState('domcontentloaded');
 
-  // Select file in input
   const fileInput = await page1.$('#docx-file');
   await fileInput.setInputFiles(SAMPLE_DOCX);
   await page1.waitForTimeout(500);
@@ -111,7 +137,6 @@ try {
 
   // Wait for conversion output to appear
   await page2.waitForSelector('#output-wrapper:not([hidden])', { timeout: 15000 });
-  // Wait for the Copied toast to show
   await page2.waitForTimeout(800);
 
   await captureFramedPopup(
@@ -134,7 +159,6 @@ try {
   // Populate contenteditable with rich table HTML
   const sampleTableHtml = `
     <h3>Experimental Benchmarks</h3>
-    <p>Performance comparison across test suites:</p>
     <table border="1" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr style="background: #f1f5f9;">
@@ -183,7 +207,7 @@ try {
   );
   await page3.close();
 
-  console.log('✓ All 3 live store screenshots captured successfully!');
+  console.log('✓ All 3 live store screenshots captured successfully with centered framing!');
 } catch (err) {
   console.error('Screenshot capture failed:', err);
   process.exit(1);

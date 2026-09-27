@@ -241,19 +241,27 @@
 
     .step-img-wrap {
       width: 100%;
-      height: 220px;
-      background: #0f172a;
+      height: 250px;
+      background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
       overflow: hidden;
       border-bottom: 1px solid var(--border);
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .step-img-wrap img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       object-position: center;
       display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .step-card:hover .step-img-wrap img {
+      transform: scale(1.03);
     }
 
     .step-body {

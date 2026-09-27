@@ -87,7 +87,7 @@ STEPS TO TEST:
 | :--- | :--- | :--- | :--- |
 | **Store Listing Logo** | 300x300 PNG (solid background) | `assets/icons/300.png` | ✅ Generated |
 | **Small Promo Tile** | 440x280 PNG | `assets/promo/promo-tile-small.png` | ✅ Generated |
-| **Large Promo Tile** | 920x680 PNG | `assets/promo/promo-tile-large.png` | ✅ Generated |
+| **Large Promo Tile** | 1400x560 PNG | `assets/promo/promo-tile-large.png` | ✅ Generated |
 | **Screenshot 1 (Upload)**| 1280x800 PNG | `assets/screenshots/1-upload-file-selected.png` | ✅ Captured live |
 | **Screenshot 2 (Output)**| 1280x800 PNG | `assets/screenshots/2-conversion-output-copied.png` | ✅ Captured live |
 | **Screenshot 3 (Paste)** | 1280x800 PNG | `assets/screenshots/3-paste-table-converted.png` | ✅ Captured live |

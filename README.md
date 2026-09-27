@@ -58,7 +58,7 @@ Everything needed for store submission is prepared and automated:
 - **Complete Store Listing Metadata**: See [`STORE.md`](STORE.md) for full descriptions, feature bullets, search keywords, single-purpose statement, and certification notes for store reviewers.
 - **Icon Generation**: Run `node scripts/generate-icons.mjs` to rebuild icons at `16x16`, `32x32`, `48x48`, `128x128` (solid-background variant for store compatibility), and `300x300` (Edge Add-ons listing logo) from the master vector [`assets/logo.svg`](assets/logo.svg).
 - **Screenshots**: Live 1280x800 browser screenshots captured using Chromium automation are located in [`assets/screenshots/`](assets/screenshots/). Re-run `node scripts/capture-screenshots.mjs` to regenerate.
-- **Promotional Tiles**: High-resolution store featuring tiles are located in [`assets/promo/`](assets/promo/) (`440x280` small tile and `920x680` large tile). Re-run `node scripts/generate-promos.mjs` to regenerate.
+- **Promotional Tiles**: High-resolution store featuring tiles are located in [`assets/promo/`](assets/promo/) (`440x280` small tile and `1400x560` large tile). Re-run `node scripts/generate-promos.mjs` to regenerate.
 - **Landing Page & Privacy Policy**:
   - Landing page: [`landing-page.html`](landing-page.html) (responsive, light/dark mode aware, shows live screenshots and feature overview).
   - Privacy policy: [`privacy-policy.html`](privacy-policy.html) (details zero data collection, offline WASM architecture, and ephemeral memory model).

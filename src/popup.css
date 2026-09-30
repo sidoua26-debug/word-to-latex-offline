@@ -62,6 +62,10 @@ h1 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .tab-panel {
   display: block;
 }
@@ -106,10 +110,49 @@ h1 {
   border-color: #4a90d9;
   border-style: solid;
   color: #222;
+  padding-right: 38px;
+}
+
+#file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clear-file-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.clear-file-btn:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.clear-file-btn[hidden] {
+  display: none !important;
 }
 
 .file-icon {
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 /* Contenteditable paste area */
@@ -183,6 +226,13 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.primary-btn .btn-spinner[hidden],
+.btn-spinner[hidden],
+.primary-btn .btn-text[hidden],
+.btn-text[hidden] {
+  display: none !important;
 }
 
 .spinner {

@@ -17,6 +17,7 @@ const panelPaste = document.getElementById('panel-paste') as HTMLDivElement;
 const fileInput = document.getElementById('docx-file') as HTMLInputElement;
 const fileName = document.getElementById('file-name') as HTMLSpanElement;
 const fileLabel = document.querySelector('.file-label') as HTMLLabelElement;
+const clearFileBtn = document.getElementById('clear-file-btn') as HTMLButtonElement | null;
 const convertBtn = document.getElementById('convert-btn') as HTMLButtonElement;
 const uploadBtnText = convertBtn.querySelector('.btn-text') as HTMLSpanElement;
 const uploadBtnSpinner = convertBtn.querySelector('.btn-spinner') as HTMLSpanElement;
@@ -38,47 +39,89 @@ const copiedToast = document.getElementById('copied-toast') as HTMLDivElement;
 // State
 let selectedFile: File | null = null;
 let lastPastedData: DetectedInput | null = null;
+let isConverting = false;
 
 // --- Tab Switching ---
 tabUpload.addEventListener('click', () => switchTab('upload'));
 tabPaste.addEventListener('click', () => switchTab('paste'));
 
 function switchTab(mode: 'upload' | 'paste') {
+  if (isConverting) return;
+
   if (mode === 'upload') {
     tabUpload.classList.add('active');
     tabPaste.classList.remove('active');
     panelUpload.hidden = false;
     panelPaste.hidden = true;
+    setUploadLoading(false);
   } else {
     tabPaste.classList.add('active');
     tabUpload.classList.remove('active');
     panelPaste.hidden = false;
     panelUpload.hidden = true;
+    setPasteLoading(false);
     pasteInput.focus();
   }
 }
 
-// --- Upload Mode: File selection ---
-fileInput.addEventListener('change', () => {
-  const file = fileInput.files?.[0];
-  if (file) {
-    selectedFile = file;
-    fileName.textContent = file.name;
-    fileLabel.classList.add('has-file');
-    convertBtn.disabled = false;
-    hideStatus();
-  } else {
-    selectedFile = null;
-    fileName.textContent = 'Choose a .docx file…';
-    fileLabel.classList.remove('has-file');
-    convertBtn.disabled = true;
+// --- Upload Mode: File selection and removal ---
+function handleFileSelected(file: File | undefined) {
+  if (!file) {
+    clearSelectedFile();
+    return;
   }
+
+  // Validate format
+  if (!file.name.toLowerCase().endsWith('.docx')) {
+    clearSelectedFile();
+    showStatus('Please select a valid .docx Word document.', 'error');
+    return;
+  }
+
+  // Validate file size (25MB limit)
+  const MAX_SIZE_BYTES = 25 * 1024 * 1024;
+  if (file.size > MAX_SIZE_BYTES) {
+    clearSelectedFile();
+    showStatus('File is too large (>25MB). Please choose a smaller document.', 'error');
+    return;
+  }
+
+  selectedFile = file;
+  fileName.textContent = file.name;
+  fileLabel.classList.add('has-file');
+  if (clearFileBtn) clearFileBtn.hidden = false;
+  convertBtn.disabled = false;
+  hideStatus();
+}
+
+function clearSelectedFile() {
+  selectedFile = null;
+  fileInput.value = '';
+  fileName.textContent = 'Choose a .docx file…';
+  fileLabel.classList.remove('has-file');
+  if (clearFileBtn) clearFileBtn.hidden = true;
+  convertBtn.disabled = true;
+  setUploadLoading(false);
+}
+
+fileInput.addEventListener('change', () => {
+  handleFileSelected(fileInput.files?.[0]);
 });
+
+if (clearFileBtn) {
+  clearFileBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearSelectedFile();
+    hideStatus();
+  });
+}
 
 // --- Upload Mode: Conversion ---
 convertBtn.addEventListener('click', async () => {
-  if (!selectedFile) return;
+  if (isConverting || !selectedFile) return;
 
+  isConverting = true;
   setUploadLoading(true);
   hideStatus();
 
@@ -97,6 +140,7 @@ convertBtn.addEventListener('click', async () => {
     showStatus(`Conversion failed: ${message}`, 'error');
     console.error('[Word to LaTeX] File conversion error:', err);
   } finally {
+    isConverting = false;
     setUploadLoading(false);
   }
 });
@@ -136,16 +180,19 @@ pasteInput.addEventListener('input', () => {
 
 function updatePasteButtonState() {
   const hasContent = Boolean(pasteInput.innerText.trim() || pasteInput.innerHTML.trim());
-  convertPasteBtn.disabled = !hasContent;
+  convertPasteBtn.disabled = !hasContent || isConverting;
 }
 
 // --- Paste Mode: Conversion ---
 convertPasteBtn.addEventListener('click', async () => {
+  if (isConverting) return;
+
   const currentText = pasteInput.innerText.trim();
   const currentHtml = pasteInput.innerHTML.trim();
 
   if (!currentText && !currentHtml) return;
 
+  isConverting = true;
   setPasteLoading(true);
   hideStatus();
 
@@ -188,6 +235,7 @@ convertPasteBtn.addEventListener('click', async () => {
     showStatus(`Conversion failed: ${message}`, 'error');
     console.error('[Word to LaTeX] Paste conversion error:', err);
   } finally {
+    isConverting = false;
     setPasteLoading(false);
   }
 });
@@ -225,13 +273,14 @@ function showToast() {
 }
 
 function setUploadLoading(loading: boolean) {
-  convertBtn.disabled = loading;
+  convertBtn.disabled = loading || !selectedFile;
   uploadBtnText.hidden = loading;
   uploadBtnSpinner.hidden = !loading;
 }
 
 function setPasteLoading(loading: boolean) {
-  convertPasteBtn.disabled = loading;
+  const hasContent = Boolean(pasteInput.innerText.trim() || pasteInput.innerHTML.trim());
+  convertPasteBtn.disabled = loading || !hasContent;
   pasteBtnText.hidden = loading;
   pasteBtnSpinner.hidden = !loading;
 }
@@ -245,3 +294,8 @@ function showStatus(message: string, type: 'error' | 'info') {
 function hideStatus() {
   statusEl.hidden = true;
 }
+
+// Initial state setup: Idle, no spinners, buttons disabled until input provided
+setUploadLoading(false);
+setPasteLoading(false);
+if (clearFileBtn) clearFileBtn.hidden = true;

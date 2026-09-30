@@ -24,18 +24,23 @@ let pandocInstancePromise: Promise<PandocInstance> | null = null;
 export async function getPandocInstance(): Promise<PandocInstance> {
   if (!pandocInstancePromise) {
     pandocInstancePromise = (async () => {
-      // Resolve extension-relative URL for the bundled wasm binary
-      const wasmUrl = typeof chrome !== 'undefined' && chrome.runtime?.getURL
-        ? chrome.runtime.getURL('wasm/pandoc.wasm')
-        : 'wasm/pandoc.wasm';
+      try {
+        // Resolve extension-relative URL for the bundled wasm binary
+        const wasmUrl = typeof chrome !== 'undefined' && chrome.runtime?.getURL
+          ? chrome.runtime.getURL('wasm/pandoc.wasm')
+          : 'wasm/pandoc.wasm';
 
-      const response = await fetch(wasmUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to load pandoc.wasm: HTTP ${response.status} ${response.statusText}`);
+        const response = await fetch(wasmUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to load pandoc.wasm: HTTP ${response.status} ${response.statusText}`);
+        }
+        const wasmBuffer = await response.arrayBuffer();
+        const instance = await createPandocInstance(wasmBuffer);
+        return instance as PandocInstance;
+      } catch (err) {
+        pandocInstancePromise = null; // Reset so subsequent conversions can retry
+        throw err;
       }
-      const wasmBuffer = await response.arrayBuffer();
-      const instance = await createPandocInstance(wasmBuffer);
-      return instance as PandocInstance;
     })();
   }
   return pandocInstancePromise;

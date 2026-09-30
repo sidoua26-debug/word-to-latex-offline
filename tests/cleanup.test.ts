@@ -139,6 +139,65 @@ describe('prependPackageComments', () => {
     assert.equal(pkgLines[0], '% \\usepackage{booktabs}');
     assert.equal(pkgLines[1], '% \\usepackage{graphicx}');
   });
+
+  it('detects calc and array for longtable column specifications', () => {
+    const input = '\\begin{longtable}[]{@{}>{\\raggedright\\arraybackslash}p{(\\linewidth - 2\\tabcolsep) * \\real{0.5000}}@{}}';
+    const result = prependPackageComments(input);
+    assert.ok(result.includes('% \\usepackage{array}'));
+    assert.ok(result.includes('% \\usepackage{calc}'));
+    assert.ok(result.includes('% \\usepackage{longtable}'));
+  });
+
+  it('detects ulem for underlined and strikethrough text', () => {
+    const input = '\\uline{underlined text} and \\sout{strike}';
+    const result = prependPackageComments(input);
+    assert.ok(result.includes('% \\usepackage{ulem}'));
+  });
+
+  it('detects tabularx', () => {
+    const input = '\\begin{tabularx}{\\linewidth}{lX}';
+    const result = prependPackageComments(input);
+    assert.ok(result.includes('% \\usepackage{tabularx}'));
+  });
+});
+
+describe('fixTableLists', () => {
+  it('wraps unwrapped itemize in a longtable cell with minipage', () => {
+    const input = '\\begin{longtable}[]{@{}ll@{}}\nCell 1 & \\begin{itemize}\n\\item Item 1\n\\item Item 2\n\\end{itemize} \\\\\n\\end{longtable}';
+    const result = cleanupLatex(input);
+    assert.ok(result.includes('\\begin{minipage}[t]{\\linewidth}\\raggedright\n\\begin{itemize}'));
+    assert.ok(result.includes('\\end{itemize}\n\\end{minipage}'));
+  });
+
+  it('wraps unwrapped enumerate in a tabular cell with minipage', () => {
+    const input = '\\begin{tabular}{ll}\nA & \\begin{enumerate}\n\\item Step 1\n\\item Step 2\n\\end{enumerate} \\\\\n\\end{tabular}';
+    const result = cleanupLatex(input);
+    assert.ok(result.includes('\\begin{minipage}[t]{\\linewidth}\\raggedright\n\\begin{enumerate}'));
+    assert.ok(result.includes('\\end{enumerate}\n\\end{minipage}'));
+  });
+
+  it('does not duplicate minipage if already wrapped', () => {
+    const input = '\\begin{longtable}[]{@{}ll@{}}\nCell 1 & \\begin{minipage}[t]{\\linewidth}\\raggedright\n\\begin{itemize}\n\\item Item 1\n\\end{itemize}\n\\end{minipage} \\\\\n\\end{longtable}';
+    const result = cleanupLatex(input);
+    // Count occurrences of \begin{minipage}
+    const matches = result.match(/\\begin\{minipage\}/g) || [];
+    assert.equal(matches.length, 1);
+  });
+
+  it('does not wrap lists that are outside of tables', () => {
+    const input = 'Here is a regular list:\n\n\\begin{itemize}\n\\item Bullet 1\n\\item Bullet 2\n\\end{itemize}';
+    const result = cleanupLatex(input);
+    assert.ok(!result.includes('\\begin{minipage}'));
+    assert.ok(result.includes('\\begin{itemize}'));
+  });
+
+  it('wraps nested lists inside a table in a single outer minipage', () => {
+    const input = '\\begin{longtable}[]{@{}ll@{}}\nCell 1 & \\begin{itemize}\n\\item Level 1\n\\begin{itemize}\n\\item Level 2\n\\end{itemize}\n\\end{itemize} \\\\\n\\end{longtable}';
+    const result = cleanupLatex(input);
+    const minipageMatches = result.match(/\\begin\{minipage\}/g) || [];
+    assert.equal(minipageMatches.length, 1);
+    assert.ok(result.includes('\\begin{minipage}[t]{\\linewidth}\\raggedright\n\\begin{itemize}'));
+  });
 });
 
 describe('cleanupLatex (full pipeline)', () => {

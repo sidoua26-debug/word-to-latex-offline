@@ -20,7 +20,7 @@ export interface PandocInstance {
 }
 
 export type ConvertInput =
-  | { format: 'docx'; bytes: ArrayBuffer }
+  | { format: 'docx'; bytes: ArrayBuffer; filename?: string }
   | { format: 'html' | 'markdown'; text: string };
 
 /**
@@ -33,7 +33,17 @@ export async function runPandocConvert(
   let result;
 
   if (input.format === 'docx') {
-    const blob = new Blob([input.bytes], {
+    const filename = input.filename || `input_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.docx`;
+    const arrayBuffer = input.bytes instanceof ArrayBuffer
+      ? input.bytes
+      : (input.bytes as any).buffer
+        ? (input.bytes as any).buffer.slice(
+            (input.bytes as any).byteOffset || 0,
+            ((input.bytes as any).byteOffset || 0) + ((input.bytes as any).byteLength || 0)
+          )
+        : input.bytes;
+
+    const blob = new Blob([arrayBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     });
 
@@ -41,10 +51,10 @@ export async function runPandocConvert(
       {
         from: 'docx',
         to: 'latex',
-        'input-files': ['input.docx'],
+        'input-files': [filename],
       },
       null,
-      { 'input.docx': blob }
+      { [filename]: blob }
     );
   } else {
     // format is 'html' or 'markdown'

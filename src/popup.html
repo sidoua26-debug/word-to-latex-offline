@@ -20,10 +20,11 @@
     <!-- Upload mode section -->
     <div class="tab-panel active" id="panel-upload">
       <div class="file-input-wrapper">
-        <label for="docx-file" class="file-label">
+        <label for="docx-file" class="file-label" id="file-label">
           <span class="file-icon">📄</span>
           <span id="file-name">Choose a .docx file…</span>
         </label>
+        <button type="button" id="clear-file-btn" class="clear-file-btn" title="Remove selected file" aria-label="Remove selected file" hidden>✕</button>
         <input type="file" id="docx-file" accept=".docx" />
       </div>
 

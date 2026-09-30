@@ -54,12 +54,78 @@ function trimTrailingWhitespace(latex: string): string {
   return latex.replace(/[ \t]+$/gm, '');
 }
 
+/**
+ * Wraps list environments (\begin{itemize} or \begin{enumerate}) located inside table environments
+ * (longtable, tabular, tabularx, etc.) in a minipage if they are not already wrapped.
+ * This guarantees valid, compilable LaTeX for tables containing lists.
+ */
+function fixTableLists(latex: string): string {
+  const tableRegex = /(\\begin\{(?:longtable|tabular\*?|tabularx|tabulary)\}[\s\S]*?\\end\{(?:longtable|tabular\*?|tabularx|tabulary)\})/g;
+
+  return latex.replace(tableRegex, (tableBlock) => {
+    const tokenRegex = /(\\begin\{(?:minipage|itemize|enumerate)\}|\\end\{(?:minipage|itemize|enumerate)\})/g;
+
+    if (!/\\begin\{(?:itemize|enumerate)\}/.test(tableBlock)) {
+      return tableBlock;
+    }
+
+    let minipageDepth = 0;
+    let listDepth = 0;
+    let currentListStart = -1;
+    let currentListType = '';
+    let result = '';
+    let lastIdx = 0;
+
+    let match: RegExpExecArray | null;
+    while ((match = tokenRegex.exec(tableBlock)) !== null) {
+      const token = match[1];
+      const matchIdx = match.index;
+
+      if (token.startsWith('\\begin{minipage}')) {
+        minipageDepth++;
+      } else if (token.startsWith('\\end{minipage}')) {
+        if (minipageDepth > 0) minipageDepth--;
+      } else if (token.startsWith('\\begin{itemize}') || token.startsWith('\\begin{enumerate}')) {
+        const type = token.includes('itemize') ? 'itemize' : 'enumerate';
+        if (minipageDepth === 0 && listDepth === 0) {
+          currentListStart = matchIdx;
+          currentListType = type;
+        }
+        listDepth++;
+      } else if (token.startsWith('\\end{itemize}') || token.startsWith('\\end{enumerate}')) {
+        const type = token.includes('itemize') ? 'itemize' : 'enumerate';
+        if (listDepth > 0) {
+          listDepth--;
+          if (minipageDepth === 0 && listDepth === 0 && currentListStart !== -1 && currentListType === type) {
+            const listEnd = matchIdx + token.length;
+            const beforeList = tableBlock.substring(lastIdx, currentListStart);
+            const listContent = tableBlock.substring(currentListStart, listEnd);
+
+            result += beforeList;
+            result += `\\begin{minipage}[t]{\\linewidth}\\raggedright\n${listContent}\n\\end{minipage}`;
+            lastIdx = listEnd;
+            currentListStart = -1;
+            currentListType = '';
+          }
+        }
+      }
+    }
+
+    result += tableBlock.substring(lastIdx);
+    return result;
+  });
+}
+
 /** Package detection rules: pattern → package name. */
 const PACKAGE_RULES: Array<{ pattern: RegExp; pkg: string }> = [
   { pattern: /\\(toprule|midrule|bottomrule)\b/, pkg: 'booktabs' },
   { pattern: /\\begin\{longtable\}/, pkg: 'longtable' },
+  { pattern: /\\begin\{tabularx\}/, pkg: 'tabularx' },
+  { pattern: /\\real\{/, pkg: 'calc' },
+  { pattern: />\{.*?\\arraybackslash\}|\\arraybackslash\b/, pkg: 'array' },
   { pattern: /\\includegraphics/, pkg: 'graphicx' },
   { pattern: /\\(hyperlink|hyperref)\b/, pkg: 'hyperref' },
+  { pattern: /\\(uline|sout)\b/, pkg: 'ulem' },
 ];
 
 /**
@@ -97,6 +163,7 @@ export function cleanupLatex(raw: string): string {
   let result = raw;
   result = removeTightlist(result);
   result = unwrapPandocbounded(result);
+  result = fixTableLists(result);
   result = collapseBlankLines(result);
   result = trimTrailingWhitespace(result);
   result = prependPackageComments(result);
@@ -107,6 +174,7 @@ export function cleanupLatex(raw: string): string {
 export {
   removeTightlist,
   unwrapPandocbounded,
+  fixTableLists,
   collapseBlankLines,
   trimTrailingWhitespace,
   prependPackageComments,

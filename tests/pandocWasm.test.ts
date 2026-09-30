@@ -94,6 +94,7 @@ describe('runPandocConvert branching logic', () => {
     const input: ConvertInput = {
       format: 'docx',
       bytes: dummyBytes,
+      filename: 'input.docx',
     };
 
     const output = await runPandocConvert(mockPandoc, input);

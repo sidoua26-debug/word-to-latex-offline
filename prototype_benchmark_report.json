@@ -1,63 +1,107 @@
 {
-  "generatedAt": "2026-09-30T19:34:58.701Z",
-  "methodology": {
-    "tesseract": "All Tesseract figures were measured by running Tesseract.js v7 (eng+fra+equ) on 10 real KaTeX-rendered PNG fixtures. Startup time, per-fixture latency, OCR confidence, and model sizes are wall-clock / disk measurements. Accuracy is computed programmatically as 1 - normalized Levenshtein edit distance between parser output and ground truth.",
-    "pix2tex": "pix2tex / LaTeX-OCR was NOT installed or executed. All pix2tex figures are qualitative feasibility estimates based on published architecture, training domain, and ONNX Runtime Web constraints. They are clearly labelled as DESIGN_ESTIMATE throughout."
-  },
-  "tesseractMeasured": {
-    "dataSource": "MEASURED",
-    "architecture": "1D LSTM Segmented OCR (eng+fra+equ) + Heuristic AST Parser",
-    "bundleSize": {
+  "generatedAt": "2026-10-06T08:40:06.867Z",
+  "status": "ALL_METRICS_MEASURED",
+  "summary": {
+    "fixturesCount": 10,
+    "canonicalizationRulesApplied": [
+      "Unwrapped math blocks (\\[, \\], \\(, \\), $$, $)",
+      "Removed LaTeX spacing macros (\\,, \\;, \\:, \\!, \\quad, \\qquad, \\ , ~)",
+      "Stripped all whitespace",
+      "Simplified single-character braces (x^{2} -> x^2, a_{1} -> a_1)",
+      "Normalized limits formatting (\\int_{0}^{1} -> \\int_0^1, \\sum_{i=1}^{n} -> \\sum_1^n)",
+      "Normalized differentials (\\mathrm{d}x -> dx, d x -> dx)",
+      "Normalized redundant \\left and \\right delimiters"
+    ],
+    "tesseract": {
+      "engine": "Tesseract.js v7 (eng+fra+equ) + Custom Heuristic Parser",
+      "dataSource": "MEASURED",
+      "modelBundleSizeMb": 18.4,
       "tessdataMb": 5.41,
       "wasmVendorMb": 12.99,
-      "totalMb": 18.4,
-      "dataSource": "MEASURED (fs.statSync)"
+      "coldStartupMs": 787,
+      "overall": {
+        "total": 10,
+        "exactMatches": 0,
+        "exactMatchRate": "0% (0/10)",
+        "meanSimilarity": 0.438,
+        "meanNED": 0.562,
+        "averageLatencyMs": 110
+      },
+      "mathFormulas": {
+        "total": 7,
+        "exactMatches": 0,
+        "exactMatchRate": "0% (0/7)",
+        "meanSimilarity": 0.299,
+        "meanNED": 0.701,
+        "averageLatencyMs": 58
+      },
+      "frenchProseAndMixed": {
+        "total": 2,
+        "exactMatches": 0,
+        "exactMatchRate": "0% (0/2)",
+        "meanSimilarity": 0.923,
+        "meanNED": 0.077,
+        "averageLatencyMs": 225
+      },
+      "tabularMath": {
+        "total": 1,
+        "exactMatches": 0,
+        "exactMatchRate": "0% (0/1)",
+        "meanSimilarity": 0.442,
+        "meanNED": 0.558,
+        "averageLatencyMs": 245
+      },
+      "peakMemoryMb": 38.5
     },
-    "coldStartupMs": {
-      "value": 863,
-      "dataSource": "MEASURED (performance.now)"
+    "pix2tex": {
+      "engine": "pix2tex / RapidLaTeXOCR (ONNX Runtime Web / CPU)",
+      "dataSource": "MEASURED (executed on all 10 fixtures)",
+      "modelBundleSizeMb": 170.66,
+      "runtimeWasmMb": 18.2,
+      "totalBundleMb": 188.86,
+      "coldStartupMs": 2723,
+      "overall": {
+        "total": 10,
+        "exactMatches": 5,
+        "exactMatchRate": "50% (5/10)",
+        "meanSimilarity": 0.621,
+        "meanNED": 0.379,
+        "averageLatencyMs": 3765
+      },
+      "mathFormulas": {
+        "total": 7,
+        "exactMatches": 5,
+        "exactMatchRate": "71.4% (5/7)",
+        "meanSimilarity": 0.8,
+        "meanNED": 0.2,
+        "averageLatencyMs": 707
+      },
+      "frenchProseAndMixed": {
+        "total": 2,
+        "exactMatches": 0,
+        "exactMatchRate": "0% (0/2)",
+        "meanSimilarity": 0.205,
+        "meanNED": 0.795,
+        "averageLatencyMs": 10099
+      },
+      "tabularMath": {
+        "total": 1,
+        "exactMatches": 0,
+        "exactMatchRate": "0% (0/1)",
+        "meanSimilarity": 0.196,
+        "meanNED": 0.804,
+        "averageLatencyMs": 12503
+      },
+      "peakRssMemoryMb": 458.63
     },
-    "averageLatencyMs": {
-      "value": 113,
-      "dataSource": "MEASURED (performance.now, mean of 10 fixtures)"
-    },
-    "accuracy": {
-      "overallMeanSimilarity": {
-        "value": 0.414,
-        "dataSource": "MEASURED (1 - normalized Levenshtein edit distance)"
-      },
-      "overallMeanNED": {
-        "value": 0.586,
-        "dataSource": "MEASURED"
-      },
-      "mathCases0107MeanSimilarity": {
-        "value": 0.274,
-        "count": 7,
-        "dataSource": "MEASURED"
-      },
-      "frenchCases0809MeanSimilarity": {
-        "value": 0.869,
-        "count": 2,
-        "dataSource": "MEASURED"
-      },
-      "tableCases10MeanSimilarity": {
-        "value": 0.482,
-        "count": 1,
-        "dataSource": "MEASURED"
-      }
+    "architecturalComparison": {
+      "modelSizeRatio": "9.3x (pix2tex weights alone 170.66 MB vs Tesseract bundle 18.4 MB)",
+      "extensionBloatFactor": "7.8x (Adding 171 MB weights to 25 MB extension zip makes it ~196 MB)",
+      "startupRatio": "3.5x slower (2723 ms vs 787 ms)",
+      "averageLatencyRatio": "34.2x slower (3765 ms vs 110 ms)",
+      "memoryRatio": "11.9x higher (458.63 MB RSS vs 38.5 MB)",
+      "browserPopupVerdict": "Impractical for production extension popup. 171MB download bloat (9.3x Tesseract), 458MB RAM consumption, and 8-12s latency on mixed/tabular inputs risk popup termination in Chrome/Edge MV3."
     }
-  },
-  "pix2texDesignEstimates": {
-    "dataSource": "DESIGN_ESTIMATE — pix2tex was NOT executed on these fixtures",
-    "modelSizeNotes": "RapidAI/RapidLaTeXOCR publishes encoder.onnx + decoder.onnx + image_resizer.onnx. Total FP32 size is ~100-300 MB per published sources. Int8 quantized size is unknown without performing quantization.",
-    "startupNotes": "ONNX Runtime Web initialization + parsing large FP32 protobuf tensors into WASM memory. No measured value available.",
-    "latencyNotes": "Autoregressive decoding requires 1 forward pass per output token. For a typical formula (20-60 tokens) on single-threaded WASM CPU, this would likely require multiple seconds. No measured value available.",
-    "memoryNotes": "WASM linear memory for ~100-300 MB of model weights plus KV-cache. Exact consumption unknown without measurement.",
-    "accuracyNotes": "pix2tex is trained exclusively on cropped mathematical formulas from arXiv (im2latex-100k dataset). It has no training data for natural language prose, French text, accented characters, or tabular layouts. Expected to perform well on isolated math formulas (cases 01-07) and fail on prose/tables (cases 08-10). This is a domain assessment, NOT a measured result.",
-    "trainingDomain": "Cropped mathematical formula images from im2latex-100k (arXiv papers). No natural language, no French, no tables.",
-    "expectedStrengths": "Isolated mathematical formulas with standard LaTeX notation",
-    "expectedWeaknesses": "Natural language text, accented characters, tabular layouts, mixed text-and-math documents",
-    "browserFeasibilityNotes": "Chrome MV3 popup pages are destroyed when the user clicks outside. Autoregressive decoding taking multiple seconds risks popup termination mid-inference. SharedArrayBuffer (needed for multi-threaded ONNX) requires COOP/COEP headers which extension popups cannot set."
   },
   "fixtures": [
     {
@@ -65,17 +109,27 @@
       "name": "Pythagorean Equation",
       "category": "math_single_line",
       "groundTruth": "x^2 + y^2 = z^2",
+      "canonicalGroundTruth": "x^2+y^2=z^2",
       "tesseract": {
-        "rawOcrText": "ety? = 2?",
-        "parsedOutput": "\\[ ety? = 2? \\]",
-        "ocrConfidence": 20,
+        "rawOutput": "\\[ ety? = 2? \\]",
+        "canonicalOutput": "ety?=2?",
+        "exactMatch": false,
+        "similarity": 0.182,
+        "normalizedEditDistance": 0.818,
+        "confidence": 20,
         "qualityGrade": "uncertain",
-        "warningCount": 2,
-        "latencyMs": 135,
-        "rawSimilarity": 0.267,
-        "parsedSimilarity": 0.2,
-        "normalizedEditDistance": 0.8,
-        "dataSource": "MEASURED"
+        "warningsCount": 2,
+        "latencyMs": 122,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "x^{2}+y^{2}=z^{2}",
+        "canonicalOutput": "x^2+y^2=z^2",
+        "exactMatch": true,
+        "similarity": 1,
+        "normalizedEditDistance": 0,
+        "latencyMs": 533,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -83,17 +137,27 @@
       "name": "Algebraic Fraction",
       "category": "math_fraction",
       "groundTruth": "\\frac{a + b}{c}",
+      "canonicalGroundTruth": "\\frac{a+b}{c}",
       "tesseract": {
-        "rawOcrText": "a+b c",
-        "parsedOutput": "\\[ a+b \\] c",
-        "ocrConfidence": 76,
+        "rawOutput": "\\[ a+b \\] c",
+        "canonicalOutput": "a+bc",
+        "exactMatch": false,
+        "similarity": 0.308,
+        "normalizedEditDistance": 0.692,
+        "confidence": 76,
         "qualityGrade": "high",
-        "warningCount": 0,
-        "latencyMs": 57,
-        "rawSimilarity": 0.267,
-        "parsedSimilarity": 0.267,
-        "normalizedEditDistance": 0.733,
-        "dataSource": "MEASURED"
+        "warningsCount": 0,
+        "latencyMs": 35,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\frac{a+b}{c}",
+        "canonicalOutput": "\\frac{a+b}{c}",
+        "exactMatch": true,
+        "similarity": 1,
+        "normalizedEditDistance": 0,
+        "latencyMs": 296,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -101,17 +165,27 @@
       "name": "Radical Expression",
       "category": "math_radical",
       "groundTruth": "\\sqrt{x^2 + 1}",
+      "canonicalGroundTruth": "\\sqrt{x^2+1}",
       "tesseract": {
-        "rawOcrText": "Vzæx? +1",
-        "parsedOutput": "\\[ Vzæx? +1 \\]",
-        "ocrConfidence": 67,
+        "rawOutput": "\\[ Vzæx? +1 \\]",
+        "canonicalOutput": "Vzæx?+1",
+        "exactMatch": false,
+        "similarity": 0.25,
+        "normalizedEditDistance": 0.75,
+        "confidence": 67,
         "qualityGrade": "uncertain",
-        "warningCount": 2,
+        "warningsCount": 2,
         "latencyMs": 36,
-        "rawSimilarity": 0.286,
-        "parsedSimilarity": 0.286,
-        "normalizedEditDistance": 0.714,
-        "dataSource": "MEASURED"
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\sqrt{x^{2}+1}",
+        "canonicalOutput": "\\sqrt{x^2+1}",
+        "exactMatch": true,
+        "similarity": 1,
+        "normalizedEditDistance": 0,
+        "latencyMs": 424,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -119,17 +193,27 @@
       "name": "Definite Integral with Limits",
       "category": "math_2d_limits",
       "groundTruth": "\\int_{0}^{1} x^2 dx",
+      "canonicalGroundTruth": "\\int_0^1x^2dx",
       "tesseract": {
-        "rawOcrText": "1 [ x?dx 0",
-        "parsedOutput": "\\[ 1 \\] \\[ [ x?dx \\] \\[ 0 \\]",
-        "ocrConfidence": 79,
+        "rawOutput": "\\[ 1 \\] \\[ [ x?dx \\] \\[ 0 \\]",
+        "canonicalOutput": "1[x?dx0",
+        "exactMatch": false,
+        "similarity": 0.154,
+        "normalizedEditDistance": 0.846,
+        "confidence": 79,
         "qualityGrade": "uncertain",
-        "warningCount": 2,
-        "latencyMs": 34,
-        "rawSimilarity": 0.105,
-        "parsedSimilarity": 0.143,
-        "normalizedEditDistance": 0.857,
-        "dataSource": "MEASURED"
+        "warningsCount": 2,
+        "latencyMs": 39,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\int_{0}^{1}x^{2}d x",
+        "canonicalOutput": "\\int_0^1x^2dx",
+        "exactMatch": true,
+        "similarity": 1,
+        "normalizedEditDistance": 0,
+        "latencyMs": 720,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -137,17 +221,27 @@
       "name": "Summation with Bounds",
       "category": "math_2d_limits",
       "groundTruth": "\\sum_{i=1}^{n} i",
+      "canonicalGroundTruth": "\\sum_i=1^ni",
       "tesseract": {
-        "rawOcrText": "n > i=1",
-        "parsedOutput": "n \\[ > \\] \\[ i=1 \\]",
-        "ocrConfidence": 60,
+        "rawOutput": "n \\[ > \\] \\[ i=1 \\]",
+        "canonicalOutput": "n>i=1",
+        "exactMatch": false,
+        "similarity": 0.273,
+        "normalizedEditDistance": 0.727,
+        "confidence": 60,
         "qualityGrade": "medium",
-        "warningCount": 1,
-        "latencyMs": 38,
-        "rawSimilarity": 0.188,
-        "parsedSimilarity": 0.105,
-        "normalizedEditDistance": 0.895,
-        "dataSource": "MEASURED"
+        "warningsCount": 1,
+        "latencyMs": 29,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\sum_{i=1}^{n}i",
+        "canonicalOutput": "\\sum_i=1^ni",
+        "exactMatch": true,
+        "similarity": 1,
+        "normalizedEditDistance": 0,
+        "latencyMs": 524,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -155,17 +249,27 @@
       "name": "2x2 Matrix",
       "category": "math_matrix",
       "groundTruth": "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+      "canonicalGroundTruth": "\\begin{pmatrix}1&2\\3&4\\end{pmatrix}",
       "tesseract": {
-        "rawOcrText": "(3 4)",
-        "parsedOutput": "\\[ (3 4) \\]",
-        "ocrConfidence": 65,
+        "rawOutput": "\\[ (3 4) \\]",
+        "canonicalOutput": "(34)",
+        "exactMatch": false,
+        "similarity": 0.057,
+        "normalizedEditDistance": 0.943,
+        "confidence": 65,
         "qualityGrade": "medium",
-        "warningCount": 1,
-        "latencyMs": 41,
-        "rawSimilarity": 0.068,
-        "parsedSimilarity": 0.136,
-        "normalizedEditDistance": 0.864,
-        "dataSource": "MEASURED"
+        "warningsCount": 1,
+        "latencyMs": 61,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\binom{1}{3}\\begin{array}{c c}{{2}}\\\\ {{4}}\\end{array}\\begin{array}{c c}{{4}}\\\\ {{4}}\\end{array}",
+        "canonicalOutput": "\\binom{1}{3}\\begin{array}{cc}{{2}}\\{{4}}\\end{array}\\begin{array}{cc}{{4}}\\{{4}}\\end{array}",
+        "exactMatch": false,
+        "similarity": 0.222,
+        "normalizedEditDistance": 0.778,
+        "latencyMs": 1686,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -173,17 +277,27 @@
       "name": "System of Equations",
       "category": "math_multiline",
       "groundTruth": "\\begin{cases} 2x + y = 5 \\\\ x - 3y = 2 \\end{cases}",
+      "canonicalGroundTruth": "\\begin{cases}2x+y=5\\x-3y=2\\end{cases}",
       "tesseract": {
-        "rawOcrText": "2ez+y=5 z—3y=2",
-        "parsedOutput": "\\begin{cases} 2ez+y=5 \\\\ z—3y=2 \\end{cases}",
-        "ocrConfidence": 22,
+        "rawOutput": "\\begin{cases} 2ez+y=5 \\\\ z—3y=2 \\end{cases}",
+        "canonicalOutput": "\\begin{cases}2ez+y=5\\\\z—3y=2\\end{cases}",
+        "exactMatch": false,
+        "similarity": 0.872,
+        "normalizedEditDistance": 0.128,
+        "confidence": 22,
         "qualityGrade": "uncertain",
-        "warningCount": 1,
-        "latencyMs": 71,
-        "rawSimilarity": 0.2,
-        "parsedSimilarity": 0.78,
-        "normalizedEditDistance": 0.22,
-        "dataSource": "MEASURED"
+        "warningsCount": 1,
+        "latencyMs": 84,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\frac{\\left\\{2x+y=5}{x-3y=2}",
+        "canonicalOutput": "\\frac{\\{2x+y=5}{x-3y=2}",
+        "exactMatch": false,
+        "similarity": 0.378,
+        "normalizedEditDistance": 0.622,
+        "latencyMs": 769,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -191,17 +305,27 @@
       "name": "French Paragraph with Inline Math",
       "category": "mixed_text_math",
       "groundTruth": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : I = \\int_{0}^{1} f(x) dx. Calculer la valeur moyenne de f.",
+      "canonicalGroundTruth": "Soitfunefonctioncontinuesurl'intervalle[0,1].Onconsidèrel'intégralesuivante:I=\\int_0^1f(x)dx.Calculerlavaleurmoyennedef.",
       "tesseract": {
-        "rawOcrText": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : 1 I= Î f(æ)dx 0 Calculer la valeur moyenne de f.",
-        "parsedOutput": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : \\[ 1 \\] \\[ I= Î f(æ)dx \\] \\[ 0 \\] Calculer la valeur moyenne de f.",
-        "ocrConfidence": 88,
+        "rawOutput": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : \\[ 1 \\] \\[ I= Î f(æ)dx \\] \\[ 0 \\] Calculer la valeur moyenne de f.",
+        "canonicalOutput": "Soitfunefonctioncontinuesurl'intervalle[0,1].Onconsidèrel'intégralesuivante:1I=Îf(æ)dx0Calculerlavaleurmoyennedef.",
+        "exactMatch": false,
+        "similarity": 0.908,
+        "normalizedEditDistance": 0.092,
+        "confidence": 88,
         "qualityGrade": "uncertain",
-        "warningCount": 2,
-        "latencyMs": 233,
-        "rawSimilarity": 0.878,
-        "parsedSimilarity": 0.827,
-        "normalizedEditDistance": 0.173,
-        "dataSource": "MEASURED"
+        "warningsCount": 2,
+        "latencyMs": 215,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\begin{array}{l}{{\\mathrm{sonis~fune\\,surtimertime{vaniervale}}\\,[0,1],\\,0n\\,c o n s i d e r e}}\\\\ {{\\mathrm{tinicaler\\,suranue\\,:~}}}\\end{array}",
+        "canonicalOutput": "\\begin{array}{l}{{\\mathrm{sonisfunesurtimertime{vaniervale}}[0,1],0nconsidere}}\\{{\\mathrm{tinicalersuranue:}}}\\end{array}",
+        "exactMatch": false,
+        "similarity": 0.157,
+        "normalizedEditDistance": 0.843,
+        "latencyMs": 8338,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -209,17 +333,27 @@
       "name": "French Accented Text",
       "category": "french_prose",
       "groundTruth": "Documentation Français. Voici des caractères accentués : é, è, à, ç, œ, ù. L'élève étudie attentivement le théorème où apparaît le paramètre déjà défini.",
+      "canonicalGroundTruth": "DocumentationFrançais.Voicidescaractèresaccentués:é,è,à,ç,œ,ù.L'élèveétudieattentivementlethéorèmeoùapparaîtleparamètredéjàdéfini.",
       "tesseract": {
-        "rawOcrText": "Documentation Frangais Voici des caractères accentués : é, à, a, ¢, ce, U. L'élève étudie attentivement le théorème où apparaît le paramètre déjà défini.",
-        "parsedOutput": "Documentation Frangais Voici des caractères accentués : é, à, a, ¢, ce, U. L'élève étudie attentivement le théorème où apparaît le paramètre \\[ déjà défini. \\]",
-        "ocrConfidence": 91,
+        "rawOutput": "Documentation Frangais Voici des caractères accentués : é, à, a, ¢, ce, U. L'élève étudie attentivement le théorème où apparaît le paramètre \\[ déjà défini. \\]",
+        "canonicalOutput": "DocumentationFrangaisVoicidescaractèresaccentués:é,à,a,¢,ce,U.L'élèveétudieattentivementlethéorèmeoùapparaîtleparamètredéjàdéfini.",
+        "exactMatch": false,
+        "similarity": 0.938,
+        "normalizedEditDistance": 0.062,
+        "confidence": 91,
         "qualityGrade": "high",
-        "warningCount": 0,
-        "latencyMs": 232,
-        "rawSimilarity": 0.948,
-        "parsedSimilarity": 0.912,
-        "normalizedEditDistance": 0.088,
-        "dataSource": "MEASURED"
+        "warningsCount": 0,
+        "latencyMs": 234,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\begin{array}{l}{{\\mathrm{DOCUmentation~FYan}\\mathrm{Cais}}}\\\\ {{\\mathrm{Voles~caracterites~accerituies~is,~c.~i.~i.}}}\\\\ {{\\mathrm{deja~deinityeomeritie~arerite~is~of~arametre}}}\\end{array}",
+        "canonicalOutput": "\\begin{array}{l}{{\\mathrm{DOCUmentationFYan}\\mathrm{Cais}}}\\{{\\mathrm{Volescaracteritesaccerituiesis,c.i.i.}}}\\{{\\mathrm{dejadeinityeomeritieareriteisofarametre}}}\\end{array}",
+        "exactMatch": false,
+        "similarity": 0.253,
+        "normalizedEditDistance": 0.747,
+        "latencyMs": 11859,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     },
     {
@@ -227,17 +361,27 @@
       "name": "Table with Mathematical Expressions",
       "category": "tabular_math",
       "groundTruth": "\\begin{tabular}{lll} Fonction & Dérivée & Primitive \\\\ f(x) = x^2 & f'(x) = 2x & F(x) = \\frac{1}{3}x^3 \\\\ g(x) = \\sin(x) & g'(x) = \\cos(x) & G(x) = -\\cos(x) \\end{tabular}",
+      "canonicalGroundTruth": "\\begin{tabular}{lll}Fonction&Dérivée&Primitive\\f(x)=x^2&f'(x)=2x&F(x)=\\frac{1}{3}x^3\\g(x)=\\sin(x)&g'(x)=\\cos(x)&G(x)=-\\cos(x)\\end{tabular}",
       "tesseract": {
-        "rawOcrText": "Fonction Dérivée Primitive f@=e J@=2 Fla) = g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a)",
-        "parsedOutput": "Fonction Dérivée Primitive \\[ f@=e J@=2 Fla) = \\] \\[ g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a) \\]",
-        "ocrConfidence": 50,
+        "rawOutput": "Fonction Dérivée Primitive \\[ f@=e J@=2 Fla) = \\] \\[ g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a) \\]",
+        "canonicalOutput": "FonctionDérivéePrimitivef@=eJ@=2Fla)=g(x)=sin(e)g(x)=cos(a)G(x)=—cos(a)",
+        "exactMatch": false,
+        "similarity": 0.442,
+        "normalizedEditDistance": 0.558,
+        "confidence": 50,
         "qualityGrade": "uncertain",
-        "warningCount": 1,
-        "latencyMs": 250,
-        "rawSimilarity": 0.435,
-        "parsedSimilarity": 0.482,
-        "normalizedEditDistance": 0.518,
-        "dataSource": "MEASURED"
+        "warningsCount": 1,
+        "latencyMs": 245,
+        "dataSource": "MEASURED (live run)"
+      },
+      "pix2tex": {
+        "rawOutput": "\\frac{\\mathrm{Poncion}}{\\mathrm{P}(x)=x^{2}}\\,\\underbrace{\\mathrm{Perive}}_{C}\\mathrm{P}(x)=2x}_{\\textstyle{\\textstyle-}-}\\underbrace{\\mathrm{Periuive}}_{C}\\mathrm{e}=\\underbrace{\\mathrm{Peritye}}_{\\textstyle{\\textstyle-}\\atop{\\textstyle{\\frac{3}{3}}}}}_{G(x)=\\cos(x)\\quad\\underbrace{P(x)=\\textstyle-\\cos(x)}_{G(x)=-\\cos(x)}\\right.",
+        "canonicalOutput": "\\frac{\\mathrm{Poncion}}{\\mathrm{P}(x)=x^2}\\underbrace{\\mathrm{Perive}}_C\\mathrm{P}(x)=2x}_{\\textstyle{\\textstyle-}-}\\underbrace{\\mathrm{Periuive}}_C\\mathrm{e}=\\underbrace{\\mathrm{Peritye}}_{\\textstyle{\\textstyle-}\\atop{\\textstyle{\\frac{3}{3}}}}}_{G(x)=\\cos(x)\\underbrace{P(x)=\\textstyle-\\cos(x)}_{G(x)=-\\cos(x)}.",
+        "exactMatch": false,
+        "similarity": 0.196,
+        "normalizedEditDistance": 0.804,
+        "latencyMs": 12503,
+        "dataSource": "MEASURED (ONNX Runtime CPU)"
       }
     }
   ]

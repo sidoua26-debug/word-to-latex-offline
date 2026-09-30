@@ -1,17 +1,29 @@
 /**
  * popup.ts — Main UI controller for the Word to LaTeX extension popup.
- * Supports both .docx file upload and rich-text / plain-text paste.
+ * Supports:
+ * 1. .docx file upload
+ * 2. Rich-text / plain-text paste
+ * 3. Offline Image to LaTeX recognition (text, equations, tables)
  */
 
 import { convertToLatex, convertDocxToLatex } from './pandocWasm.js';
 import { cleanupLatex } from './cleanup.js';
 import { detectPastedFormat, DetectedInput } from './clipboardDetect.js';
+import {
+  validateImageFile,
+  fileToDataUrl,
+  loadImage,
+  preprocessCanvas,
+} from './imageOcr/imagePreprocess.js';
+import { convertImageToLatex } from './imageOcr/ocrEngine.js';
 
 // DOM elements — Tabs
 const tabUpload = document.getElementById('tab-upload') as HTMLButtonElement;
 const tabPaste = document.getElementById('tab-paste') as HTMLButtonElement;
+const tabImage = document.getElementById('tab-image') as HTMLButtonElement;
 const panelUpload = document.getElementById('panel-upload') as HTMLDivElement;
 const panelPaste = document.getElementById('panel-paste') as HTMLDivElement;
+const panelImage = document.getElementById('panel-image') as HTMLDivElement;
 
 // DOM elements — Upload mode
 const fileInput = document.getElementById('docx-file') as HTMLInputElement;
@@ -28,6 +40,22 @@ const convertPasteBtn = document.getElementById('convert-paste-btn') as HTMLButt
 const pasteBtnText = convertPasteBtn.querySelector('.btn-text') as HTMLSpanElement;
 const pasteBtnSpinner = convertPasteBtn.querySelector('.btn-spinner') as HTMLSpanElement;
 
+// DOM elements — Image mode
+const imageDropzone = document.getElementById('image-dropzone') as HTMLDivElement;
+const imageFileInput = document.getElementById('image-file') as HTMLInputElement;
+const dropzonePrompt = document.getElementById('dropzone-prompt') as HTMLDivElement;
+const imagePreviewCard = document.getElementById('image-preview-card') as HTMLDivElement;
+const imagePreviewImg = document.getElementById('image-preview') as HTMLImageElement;
+const imageName = document.getElementById('image-name') as HTMLSpanElement;
+const imageInfo = document.getElementById('image-info') as HTMLSpanElement;
+const clearImageBtn = document.getElementById('clear-image-btn') as HTMLButtonElement | null;
+const btnModeFragment = document.getElementById('btn-mode-fragment') as HTMLButtonElement;
+const btnModeDocument = document.getElementById('btn-mode-document') as HTMLButtonElement;
+const checkEmbedFigure = document.getElementById('check-embed-figure') as HTMLInputElement;
+const convertImageBtn = document.getElementById('convert-image-btn') as HTMLButtonElement;
+const imageBtnText = convertImageBtn.querySelector('.btn-text') as HTMLSpanElement;
+const imageBtnSpinner = convertImageBtn.querySelector('.btn-spinner') as HTMLSpanElement;
+
 // DOM elements — Shared Output & Status
 const statusEl = document.getElementById('status') as HTMLDivElement;
 const outputWrapper = document.getElementById('output-wrapper') as HTMLDivElement;
@@ -39,28 +67,40 @@ const copiedToast = document.getElementById('copied-toast') as HTMLDivElement;
 // State
 let selectedFile: File | null = null;
 let lastPastedData: DetectedInput | null = null;
+let selectedImageFile: File | null = null;
+let selectedImageDataUrl: string | null = null;
+let imageOutputMode: 'fragment' | 'document' = 'fragment';
 let isConverting = false;
 
 // --- Tab Switching ---
 tabUpload.addEventListener('click', () => switchTab('upload'));
 tabPaste.addEventListener('click', () => switchTab('paste'));
+tabImage.addEventListener('click', () => switchTab('image'));
 
-function switchTab(mode: 'upload' | 'paste') {
+function switchTab(mode: 'upload' | 'paste' | 'image') {
   if (isConverting) return;
+
+  // Deactivate all
+  tabUpload.classList.remove('active');
+  tabPaste.classList.remove('active');
+  tabImage.classList.remove('active');
+  panelUpload.hidden = true;
+  panelPaste.hidden = true;
+  panelImage.hidden = true;
 
   if (mode === 'upload') {
     tabUpload.classList.add('active');
-    tabPaste.classList.remove('active');
     panelUpload.hidden = false;
-    panelPaste.hidden = true;
     setUploadLoading(false);
-  } else {
+  } else if (mode === 'paste') {
     tabPaste.classList.add('active');
-    tabUpload.classList.remove('active');
     panelPaste.hidden = false;
-    panelUpload.hidden = true;
     setPasteLoading(false);
     pasteInput.focus();
+  } else {
+    tabImage.classList.add('active');
+    panelImage.hidden = false;
+    setImageLoading(false);
   }
 }
 
@@ -130,10 +170,7 @@ convertBtn.addEventListener('click', async () => {
     const rawLatex = await convertDocxToLatex(arrayBuffer);
     const cleanLatex = cleanupLatex(rawLatex);
 
-    // Display result
     renderOutput(cleanLatex, 'docx file');
-
-    // Auto-copy to clipboard
     await copyToClipboard(cleanLatex);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -158,22 +195,16 @@ pasteInput.addEventListener('paste', (event: ClipboardEvent) => {
   const detected = detectPastedFormat({ html, text });
   lastPastedData = detected;
 
-  // Insert the chosen representation into the contenteditable div
   if (detected.format === 'html') {
-    // Insert HTML into contenteditable
     pasteInput.innerHTML = detected.content;
   } else {
-    // Insert plain text safely
     pasteInput.innerText = detected.content;
   }
 
   updatePasteButtonState();
 });
 
-// Update button when user edits or types directly into pasteInput
 pasteInput.addEventListener('input', () => {
-  // If the user modified content manually, invalidate the cached paste format
-  // so we re-evaluate from current DOM / innerText
   lastPastedData = null;
   updatePasteButtonState();
 });
@@ -206,7 +237,6 @@ convertPasteBtn.addEventListener('click', async () => {
       inputContent = lastPastedData.content;
       sourceDesc = lastPastedData.sourceDescription;
     } else {
-      // User typed directly or modified pasted content
       const hasMarkup = /<[a-z][\s\S]*>/i.test(currentHtml);
       if (hasMarkup && currentHtml !== currentText) {
         inputFormat = 'html';
@@ -225,10 +255,7 @@ convertPasteBtn.addEventListener('click', async () => {
     });
     const cleanLatex = cleanupLatex(rawLatex);
 
-    // Display result with source indication
     renderOutput(cleanLatex, sourceDesc);
-
-    // Auto-copy to clipboard
     await copyToClipboard(cleanLatex);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -237,6 +264,161 @@ convertPasteBtn.addEventListener('click', async () => {
   } finally {
     isConverting = false;
     setPasteLoading(false);
+  }
+});
+
+// --- Image Mode: File selection, dropzone, and clipboard paste ---
+async function handleImageSelected(file: File | undefined) {
+  if (!file) {
+    clearSelectedImage();
+    return;
+  }
+
+  const validation = validateImageFile(file);
+  if (!validation.valid) {
+    clearSelectedImage();
+    showStatus(validation.error || 'Invalid image file.', 'error');
+    return;
+  }
+
+  try {
+    selectedImageFile = file;
+    const dataUrl = await fileToDataUrl(file);
+    selectedImageDataUrl = dataUrl;
+
+    // Load into preview image to extract dimensions
+    const img = await loadImage(dataUrl);
+    imagePreviewImg.src = dataUrl;
+    imageName.textContent = file.name;
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    imageInfo.textContent = `${img.naturalWidth}×${img.naturalHeight}px • ${sizeMb} MB`;
+
+    dropzonePrompt.hidden = true;
+    imagePreviewCard.hidden = false;
+    if (clearImageBtn) clearImageBtn.hidden = false;
+    convertImageBtn.disabled = false;
+    hideStatus();
+  } catch (err) {
+    clearSelectedImage();
+    showStatus('Failed to read image preview.', 'error');
+  }
+}
+
+function clearSelectedImage() {
+  selectedImageFile = null;
+  selectedImageDataUrl = null;
+  imageFileInput.value = '';
+  imagePreviewImg.src = '';
+  imagePreviewCard.hidden = true;
+  if (clearImageBtn) clearImageBtn.hidden = true;
+  dropzonePrompt.hidden = false;
+  convertImageBtn.disabled = true;
+  setImageLoading(false);
+}
+
+imageFileInput.addEventListener('change', () => {
+  handleImageSelected(imageFileInput.files?.[0]);
+});
+
+if (clearImageBtn) {
+  clearImageBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearSelectedImage();
+    hideStatus();
+  });
+}
+
+// Drag & drop handlers
+imageDropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  imageDropzone.classList.add('dragover');
+});
+
+imageDropzone.addEventListener('dragleave', () => {
+  imageDropzone.classList.remove('dragover');
+});
+
+imageDropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  imageDropzone.classList.remove('dragover');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) {
+    handleImageSelected(file);
+  }
+});
+
+// Clipboard image paste support (when Image tab is active)
+window.addEventListener('paste', async (e: ClipboardEvent) => {
+  if (panelImage.hidden) return; // Only trigger if Image tab is active
+
+  const items = e.clipboardData?.items;
+  if (!items) return;
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.startsWith('image/')) {
+      const file = items[i].getAsFile();
+      if (file) {
+        e.preventDefault();
+        await handleImageSelected(file);
+        break;
+      }
+    }
+  }
+});
+
+// Output mode buttons
+btnModeFragment.addEventListener('click', () => {
+  imageOutputMode = 'fragment';
+  btnModeFragment.classList.add('active');
+  btnModeDocument.classList.remove('active');
+});
+
+btnModeDocument.addEventListener('click', () => {
+  imageOutputMode = 'document';
+  btnModeDocument.classList.add('active');
+  btnModeFragment.classList.remove('active');
+});
+
+// --- Image Mode: Conversion ---
+convertImageBtn.addEventListener('click', async () => {
+  if (isConverting || !selectedImageFile || !selectedImageDataUrl) return;
+
+  isConverting = true;
+  setImageLoading(true);
+  hideStatus();
+
+  try {
+    showStatus('Preparing image and recognizing text/equations...', 'info');
+
+    // Preprocess image on canvas
+    const img = await loadImage(selectedImageDataUrl);
+    const canvas = preprocessCanvas(img);
+
+    const result = await convertImageToLatex(canvas, {
+      mode: imageOutputMode,
+      embedFigure: checkEmbedFigure.checked,
+      imageFileName: selectedImageFile.name,
+      hasFrench: true,
+      onProgress: (phase) => {
+        showStatus(phase, 'info');
+      },
+    });
+
+    renderOutput(result.latex, `image (${selectedImageFile.name})`);
+    if (result.quality === 'uncertain' || result.quality === 'low') {
+      showStatus(`Conversion complete (${result.confidence}% confidence). Check output comments for manual review.`, 'info');
+    } else {
+      hideStatus();
+    }
+    await copyToClipboard(result.latex);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    showStatus(`Image conversion failed: ${message}`, 'error');
+    console.error('[Word to LaTeX] Image conversion error:', err);
+  } finally {
+    isConverting = false;
+    setImageLoading(false);
   }
 });
 
@@ -256,9 +438,21 @@ copyBtn.addEventListener('click', async () => {
 
 async function copyToClipboard(text: string) {
   try {
-    await navigator.clipboard.writeText(text);
-    showToast();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      showToast();
+      return;
+    }
+    throw new Error('Clipboard API unavailable');
   } catch (err) {
+    try {
+      outputTextarea.select();
+      const success = document.execCommand('copy');
+      if (success) {
+        showToast();
+        return;
+      }
+    } catch {}
     console.warn('[Word to LaTeX] Clipboard write failed:', err);
     outputTextarea.select();
     showStatus('Auto-copy failed — text selected, press Ctrl+C to copy.', 'info');
@@ -285,6 +479,12 @@ function setPasteLoading(loading: boolean) {
   pasteBtnSpinner.hidden = !loading;
 }
 
+function setImageLoading(loading: boolean) {
+  convertImageBtn.disabled = loading || !selectedImageFile;
+  imageBtnText.hidden = loading;
+  imageBtnSpinner.hidden = !loading;
+}
+
 function showStatus(message: string, type: 'error' | 'info') {
   statusEl.textContent = message;
   statusEl.className = `status ${type}`;
@@ -298,4 +498,6 @@ function hideStatus() {
 // Initial state setup: Idle, no spinners, buttons disabled until input provided
 setUploadLoading(false);
 setPasteLoading(false);
+setImageLoading(false);
 if (clearFileBtn) clearFileBtn.hidden = true;
+if (clearImageBtn) clearImageBtn.hidden = true;

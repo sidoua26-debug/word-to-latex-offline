@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "build": "node esbuild.config.mjs",
-    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test": "node --test --test-concurrency=1 --experimental-strip-types tests/*.test.ts",
     "clean": "rm -rf dist word-to-latex-offline.zip",
     "package": "npm run build && (cd dist && zip -r ../word-to-latex-offline.zip .)"
   },
   "dependencies": {
-    "pandoc-wasm": "*"
+    "pandoc-wasm": "*",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",

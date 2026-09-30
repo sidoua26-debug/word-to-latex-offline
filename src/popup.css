@@ -124,7 +124,7 @@ h1 {
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 2;
+  z-index: 10;
   width: 22px;
   height: 22px;
   border: none;
@@ -197,6 +197,156 @@ h1 {
 .paste-area td {
   border: 1px solid #ccc;
   padding: 3px 6px;
+}
+
+/* Image Dropzone & Preview */
+.image-dropzone {
+  position: relative;
+  margin-bottom: 12px;
+  min-height: 110px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.image-dropzone:hover,
+.image-dropzone.dragover {
+  border-color: #4a90d9;
+  background: #f0f6ff;
+}
+
+.image-dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.dropzone-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.dropzone-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dropzone-subtitle {
+  font-size: 11px;
+  color: #777;
+}
+
+.image-preview-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.image-preview-card img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.image-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.image-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-info {
+  font-size: 11px;
+  color: #666;
+}
+
+/* Image options */
+.image-options-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 11.5px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.option-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.segmented-control {
+  display: inline-flex;
+  background: #e2e8f0;
+  padding: 2px;
+  border-radius: 5px;
+}
+
+.segment-btn {
+  border: none;
+  background: transparent;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.segment-btn.active {
+  background: #fff;
+  color: #0f172a;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
 }
 
 /* Primary buttons */

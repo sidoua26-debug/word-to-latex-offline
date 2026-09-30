@@ -238,6 +238,7 @@ describe("Scenarios 10, 11, 12: UI Interactivity & Edge Cases", () => {
 
     assert.equal(await toast.isVisible(), false, "Toast should be initially hidden");
     await copyBtn.click();
+    await toast.waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
     assert.equal(await toast.isVisible(), true, "Toast should be visible after clicking copy");
   });
 

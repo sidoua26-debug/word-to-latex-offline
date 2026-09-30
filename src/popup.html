@@ -15,6 +15,7 @@
     <div class="tab-bar">
       <button type="button" class="tab-btn active" id="tab-upload">Upload File</button>
       <button type="button" class="tab-btn" id="tab-paste">Paste Content</button>
+      <button type="button" class="tab-btn" id="tab-image">Image to LaTeX</button>
     </div>
 
     <!-- Upload mode section -->
@@ -56,6 +57,53 @@
 
       <button id="convert-paste-btn" class="primary-btn" disabled>
         <span class="btn-text">Convert Pasted Content</span>
+        <span class="btn-spinner" hidden>
+          <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" dur="0.8s" from="0 12 12" to="360 12 12" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          Converting…
+        </span>
+      </button>
+    </div>
+
+    <!-- Image mode section -->
+    <div class="tab-panel" id="panel-image" hidden>
+      <div class="image-dropzone" id="image-dropzone">
+        <input type="file" id="image-file" accept=".png,.jpg,.jpeg,.webp,.bmp" />
+        <div class="dropzone-prompt" id="dropzone-prompt">
+          <span class="file-icon">🖼️</span>
+          <span class="dropzone-title">Drop an image here, paste (Ctrl+V), or browse</span>
+          <span class="dropzone-subtitle">Supports PNG, JPG, WEBP, BMP (max 15MB)</span>
+        </div>
+        <div class="image-preview-card" id="image-preview-card" hidden>
+          <img id="image-preview" alt="Image preview" />
+          <div class="image-meta">
+            <span id="image-name" class="image-name"></span>
+            <span id="image-info" class="image-info"></span>
+          </div>
+          <button type="button" id="clear-image-btn" class="clear-file-btn" title="Remove image" aria-label="Remove image">✕</button>
+        </div>
+      </div>
+
+      <!-- Image Options -->
+      <div class="image-options-group">
+        <div class="option-row">
+          <span class="option-label">Output:</span>
+          <div class="segmented-control">
+            <button type="button" class="segment-btn active" id="btn-mode-fragment">Fragment</button>
+            <button type="button" class="segment-btn" id="btn-mode-document">Document</button>
+          </div>
+        </div>
+        <label class="checkbox-label" title="Generate \\begin{figure} with \\includegraphics">
+          <input type="checkbox" id="check-embed-figure" />
+          <span>Embed image as figure</span>
+        </label>
+      </div>
+
+      <button id="convert-image-btn" class="primary-btn" disabled>
+        <span class="btn-text">Convert Image to LaTeX</span>
         <span class="btn-spinner" hidden>
           <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round">

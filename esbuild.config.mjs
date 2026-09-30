@@ -38,6 +38,17 @@ await esbuild.build({
 });
 console.log('✓ Bundled popup.js');
 
+// 1b. Bundle background.ts -> dist/background.js
+await esbuild.build({
+  entryPoints: [join(SRC, 'background.ts')],
+  bundle: true,
+  format: 'esm',
+  target: 'chrome120',
+  outfile: join(DIST, 'background.js'),
+  minify: false,
+});
+console.log('✓ Bundled background.js');
+
 // 2. Copy static assets from src/ to dist/
 const staticFiles = ['popup.html', 'popup.css', 'manifest.json'];
 for (const file of staticFiles) {
@@ -69,6 +80,38 @@ if (existsSync(wasmSrc)) {
 } else {
   console.error('✗ pandoc.wasm not found in node_modules/pandoc-wasm/src/ — please run npm install');
   process.exit(1);
+}
+
+// 5. Copy Tesseract worker and WASM into dist/vendor/tesseract/
+const tesseractVendorDest = join(DIST, 'vendor', 'tesseract');
+mkdirSync(tesseractVendorDest, { recursive: true });
+
+const tesseractWorkerSrc = join(NODE_MODULES, 'tesseract.js', 'dist', 'worker.min.js');
+if (existsSync(tesseractWorkerSrc)) {
+  cpSync(tesseractWorkerSrc, join(tesseractVendorDest, 'worker.min.js'));
+}
+
+const tesseractCoreFiles = [
+  'tesseract-core-lstm.wasm',
+  'tesseract-core-lstm.wasm.js',
+  'tesseract-core-simd-lstm.wasm',
+  'tesseract-core-simd-lstm.wasm.js',
+];
+for (const file of tesseractCoreFiles) {
+  const src = join(NODE_MODULES, 'tesseract.js-core', file);
+  if (existsSync(src)) {
+    cpSync(src, join(tesseractVendorDest, file));
+  }
+}
+console.log('✓ Bundled Tesseract worker & WASM core to dist/vendor/tesseract/');
+
+// 6. Copy offline tessdata models into dist/tessdata/
+const tessdataSrc = join(ASSETS, 'tessdata');
+const tessdataDest = join(DIST, 'tessdata');
+if (existsSync(tessdataSrc)) {
+  mkdirSync(tessdataDest, { recursive: true });
+  cpSync(tessdataSrc, tessdataDest, { recursive: true });
+  console.log('✓ Bundled offline traineddata to dist/tessdata/');
 }
 
 console.log('✓ Build complete → dist/');

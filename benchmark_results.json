@@ -1,0 +1,82 @@
+[
+  {
+    "id": "case_01_pythagoras",
+    "name": "x^2 + y^2 = z^2",
+    "expected": "x^2 + y^2 = z^2",
+    "confidence": 20,
+    "rawText": "ety? = 2?",
+    "parsedLatex": "\\[ \\n ety? = 2? \\n \\]"
+  },
+  {
+    "id": "case_02_fraction",
+    "name": "(a+b)/c",
+    "expected": "\\frac{a + b}{c}",
+    "confidence": 76,
+    "rawText": "a+b \\n c",
+    "parsedLatex": "\\[ \\n a+b \\n \\] \\n c"
+  },
+  {
+    "id": "case_03_sqrt",
+    "name": "sqrt(x^2 + 1)",
+    "expected": "\\sqrt{x^2 + 1}",
+    "confidence": 67,
+    "rawText": "Vzæx? +1",
+    "parsedLatex": "\\[ \\n Vzæx? +1 \\n \\]"
+  },
+  {
+    "id": "case_04_integral",
+    "name": "∫_0^1 x^2 dx",
+    "expected": "\\int_{0}^{1} x^2 dx",
+    "confidence": 79,
+    "rawText": "1 \\n [ x?dx \\n 0",
+    "parsedLatex": "\\[ \\n 1 \\n \\] \\n \\[ \\n [ x?dx \\n \\] \\n \\[ \\n 0 \\n \\]"
+  },
+  {
+    "id": "case_05_summation",
+    "name": "Σ_{i=1}^n i",
+    "expected": "\\sum_{i=1}^{n} i",
+    "confidence": 60,
+    "rawText": "n \\n > \\n i=1",
+    "parsedLatex": "n \\n \\[ \\n > \\n \\] \\n \\[ \\n i=1 \\n \\]"
+  },
+  {
+    "id": "case_06_matrix",
+    "name": "2x2 matrix",
+    "expected": "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+    "confidence": 65,
+    "rawText": "(3 4)",
+    "parsedLatex": "\\[ \\n (3 4) \\n \\]"
+  },
+  {
+    "id": "case_07_system",
+    "name": "system of equations",
+    "expected": "\\begin{cases} 2x + y = 5 \\\\ x - 3y = 2 \\end{cases}",
+    "confidence": 22,
+    "rawText": "2ez+y=5 \\n z—3y=2",
+    "parsedLatex": "\\begin{cases} \\n 2ez+y=5 \\\\ \\n z—3y=2 \\n \\end{cases}"
+  },
+  {
+    "id": "case_08_french_math",
+    "name": "French paragraph with math",
+    "expected": "Soit f une fonction... I = \\int...",
+    "confidence": 88,
+    "rawText": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère \\n l'intégrale suivante : \\n 1 \\n I= Î f(æ)dx \\n 0 \\n Calculer la valeur moyenne de f.",
+    "parsedLatex": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère \\n l'intégrale suivante : \\n \\[ \\n 1 \\n \\] \\n \\[ \\n I= Î f(æ)dx \\n \\] \\n \\[ \\n 0 \\n \\] \\n Calculer la valeur moyenne de f."
+  },
+  {
+    "id": "case_09_french_accents",
+    "name": "French accents é è à ç œ ù",
+    "expected": "é, è, à, ç, œ, ù... élève... où...",
+    "confidence": 91,
+    "rawText": "Documentation Frangais \\n Voici des caractères accentués : é, à, a, ¢, ce, U. \\n L'élève étudie attentivement le théorème où apparaît le paramètre \\n déjà défini.",
+    "parsedLatex": "Documentation Frangais \\n Voici des caractères accentués : é, à, a, ¢, ce, U. \\n L'élève étudie attentivement le théorème où apparaît le paramètre \\n \\[ \\n déjà défini. \\n \\]"
+  },
+  {
+    "id": "case_10_table_math",
+    "name": "Table with math",
+    "expected": "\\begin{tabular} ... f(x) = x^2 ... \\end{tabular}",
+    "confidence": 50,
+    "rawText": "Fonction Dérivée Primitive \\n f@=e J@=2 Fla) = \\n g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a)",
+    "parsedLatex": "Fonction Dérivée Primitive \\n \\[ \\n f@=e J@=2 Fla) = \\n \\] \\n \\[ \\n g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a) \\n \\]"
+  }
+]

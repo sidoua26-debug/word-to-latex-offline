@@ -1,0 +1,177 @@
+/**
+ * ocrEngine.ts — Modular Offline Image Recognition Engine.
+ * Implements ImageRecognitionEngine interface to decouple Tesseract from
+ * mathematical structure parsing and LaTeX generation.
+ *
+ * Runs 100% offline using bundled local WebAssembly and language models.
+ * Fault-isolated: errors never propagate to DOCX or text conversions.
+ */
+
+import { createWorker, type Worker } from 'tesseract.js';
+import { parseOcrToLatex } from './mathParser.ts';
+import type { OcrResultData } from './mathParser.ts';
+import { detectAndParseTable } from './tableParser.ts';
+import { formatLatexOutput } from './latexGenerator.ts';
+import type {
+  ImageRecognitionEngine,
+  RecognitionResult,
+  RecognitionOptions,
+} from './types.ts';
+import { assessQuality, attachQualityHeaders } from './resultQuality.ts';
+
+let tesseractWorkerPromise: Promise<Worker> | null = null;
+
+export type ProgressCallback = (statusText: string, progress: number) => void;
+
+/**
+ * Lazily creates and initializes an offline Tesseract worker instance.
+ */
+export async function getTesseractWorker(onProgress?: ProgressCallback): Promise<Worker> {
+  if (!tesseractWorkerPromise) {
+    tesseractWorkerPromise = (async () => {
+      try {
+        const isExtension = typeof chrome !== 'undefined' && Boolean(chrome.runtime?.getURL);
+
+        let options: Record<string, unknown> = {
+          cacheMethod: 'none',
+          gzip: true,
+        };
+
+        if (isExtension) {
+          options = {
+            ...options,
+            workerPath: chrome.runtime.getURL('vendor/tesseract/worker.min.js'),
+            corePath: chrome.runtime.getURL('vendor/tesseract/tesseract-core-lstm.wasm.js'),
+            langPath: chrome.runtime.getURL('tessdata'),
+            workerBlobURL: false, // Disallow blob worker in Manifest V3
+          };
+        } else {
+          // Node.js test environment
+          options = {
+            ...options,
+            langPath: 'assets/tessdata',
+          };
+        }
+
+        const worker = await createWorker(['eng', 'fra'], 1, options);
+        return worker;
+      } catch (err) {
+        tesseractWorkerPromise = null; // Allow retry on failure
+        throw new Error(`Failed to initialize offline OCR engine: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    })();
+  }
+
+  return tesseractWorkerPromise;
+}
+
+/**
+ * Terminates the active worker instance (crucial for cleaning up Node worker threads).
+ */
+export async function terminateTesseractWorker(): Promise<void> {
+  if (tesseractWorkerPromise) {
+    const worker = await tesseractWorkerPromise;
+    tesseractWorkerPromise = null;
+    await worker.terminate();
+  }
+}
+
+/**
+ * Default offline implementation using Tesseract.js (eng+fra).
+ * Pluggable: can be replaced by an ONNX/WASM math transformer engine in the future.
+ */
+export class TesseractRecognitionEngine implements ImageRecognitionEngine {
+  readonly id = 'tesseract-v7';
+  readonly name = 'Tesseract.js OCR (eng + fra)';
+
+  async recognize(
+    imageSource: string | HTMLCanvasElement | Buffer | Uint8Array,
+    options: RecognitionOptions
+  ): Promise<RecognitionResult> {
+    const { onProgress } = options;
+
+    onProgress?.('Initializing recognition engine...', 0.1);
+    const worker = await getTesseractWorker(onProgress);
+
+    onProgress?.('Recognizing text and characters...', 0.3);
+    const result = await worker.recognize(imageSource as any);
+
+    onProgress?.('Analyzing structure and equations...', 0.8);
+
+    const rawText = result.data.text || '';
+    const ocrData: OcrResultData = {
+      text: rawText,
+      confidence: result.data.confidence || 0,
+      lines: result.data.lines?.map(l => ({
+        text: l.text,
+        confidence: l.confidence,
+        bbox: l.bbox,
+        words: l.words?.map(w => ({
+          text: w.text,
+          confidence: w.confidence,
+          bbox: w.bbox,
+        })),
+      })),
+    };
+
+    // 1. Table structure detection
+    const tableCheck = detectAndParseTable(ocrData);
+    let bodyContent = '';
+    const isTable = tableCheck.isTable && Boolean(tableCheck.latex);
+
+    if (isTable && tableCheck.latex) {
+      bodyContent = tableCheck.latex;
+    } else {
+      // 2. Math expression & text parsing
+      bodyContent = parseOcrToLatex(ocrData);
+    }
+
+    // 3. Quality & honesty assessment
+    const qualityAnalysis = assessQuality(ocrData, bodyContent);
+
+    // 4. Attach diagnostic headers if uncertainty or warnings exist
+    const annotatedBody = attachQualityHeaders(
+      bodyContent,
+      qualityAnalysis.quality,
+      qualityAnalysis.confidence,
+      qualityAnalysis.warnings
+    );
+
+    // 5. Format into Fragment or Complete Document
+    const formattedLatex = formatLatexOutput(annotatedBody, options);
+
+    onProgress?.('Complete', 1.0);
+
+    return {
+      engine: this.id,
+      rawText,
+      latex: formattedLatex,
+      confidence: qualityAnalysis.confidence,
+      quality: qualityAnalysis.quality,
+      warnings: qualityAnalysis.warnings,
+      isTable,
+      hasMath: qualityAnalysis.hasMath,
+    };
+  }
+}
+
+// Active singleton engine instance
+let activeEngine: ImageRecognitionEngine = new TesseractRecognitionEngine();
+
+export function setRecognitionEngine(engine: ImageRecognitionEngine) {
+  activeEngine = engine;
+}
+
+export function getActiveRecognitionEngine(): ImageRecognitionEngine {
+  return activeEngine;
+}
+
+/**
+ * Top-level conversion helper delegating to active ImageRecognitionEngine.
+ */
+export async function convertImageToLatex(
+  imageSource: string | HTMLCanvasElement | Buffer | Uint8Array,
+  options: RecognitionOptions
+): Promise<RecognitionResult> {
+  return activeEngine.recognize(imageSource, options);
+}

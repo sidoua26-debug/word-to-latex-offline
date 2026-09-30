@@ -409,6 +409,39 @@ h1 {
   border: 1px solid #bfdbfe;
 }
 
+/* Experimental Banner */
+.experimental-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #92400e;
+}
+
+.experimental-badge {
+  display: inline-block;
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.experimental-text {
+  flex: 1;
+}
+
 /* Output */
 .output-wrapper {
   margin-top: 14px;
@@ -430,6 +463,17 @@ h1 {
   gap: 8px;
 }
 
+.editable-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+}
+
 .source-indicator {
   font-size: 11px;
   font-weight: 500;
@@ -440,18 +484,22 @@ h1 {
 }
 
 .copy-btn {
-  background: none;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 11px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
   cursor: pointer;
-  color: #555;
-  transition: background 0.15s;
+  color: #334155;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .copy-btn:hover {
-  background: #f0f0f0;
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 
 textarea#output {
@@ -461,16 +509,30 @@ textarea#output {
   font-size: 11.5px;
   line-height: 1.5;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
-  background: #fff;
+  background: #ffffff;
   color: #1a1a1a;
   resize: vertical;
+  cursor: text;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+textarea#output:hover {
+  border-color: #94a3b8;
 }
 
 textarea#output:focus {
   outline: none;
   border-color: #4a90d9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+}
+
+.output-hint {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.35;
 }
 
 /* Toast */

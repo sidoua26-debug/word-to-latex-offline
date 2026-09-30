@@ -407,7 +407,9 @@ convertImageBtn.addEventListener('click', async () => {
 
     renderOutput(result.latex, `image (${selectedImageFile.name})`);
     if (result.quality === 'uncertain' || result.quality === 'low') {
-      showStatus(`Conversion complete (${result.confidence}% confidence). Check output comments for manual review.`, 'info');
+      showStatus(`Conversion complete (${result.confidence}% confidence). Review and edit formulas in the output box below before copying.`, 'info');
+    } else if (result.hasMath) {
+      showStatus('Conversion complete with experimental math recognition. You can edit expressions below before copying.', 'info');
     } else {
       hideStatus();
     }

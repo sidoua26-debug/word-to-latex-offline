@@ -1,0 +1,244 @@
+{
+  "generatedAt": "2026-09-30T19:34:58.701Z",
+  "methodology": {
+    "tesseract": "All Tesseract figures were measured by running Tesseract.js v7 (eng+fra+equ) on 10 real KaTeX-rendered PNG fixtures. Startup time, per-fixture latency, OCR confidence, and model sizes are wall-clock / disk measurements. Accuracy is computed programmatically as 1 - normalized Levenshtein edit distance between parser output and ground truth.",
+    "pix2tex": "pix2tex / LaTeX-OCR was NOT installed or executed. All pix2tex figures are qualitative feasibility estimates based on published architecture, training domain, and ONNX Runtime Web constraints. They are clearly labelled as DESIGN_ESTIMATE throughout."
+  },
+  "tesseractMeasured": {
+    "dataSource": "MEASURED",
+    "architecture": "1D LSTM Segmented OCR (eng+fra+equ) + Heuristic AST Parser",
+    "bundleSize": {
+      "tessdataMb": 5.41,
+      "wasmVendorMb": 12.99,
+      "totalMb": 18.4,
+      "dataSource": "MEASURED (fs.statSync)"
+    },
+    "coldStartupMs": {
+      "value": 863,
+      "dataSource": "MEASURED (performance.now)"
+    },
+    "averageLatencyMs": {
+      "value": 113,
+      "dataSource": "MEASURED (performance.now, mean of 10 fixtures)"
+    },
+    "accuracy": {
+      "overallMeanSimilarity": {
+        "value": 0.414,
+        "dataSource": "MEASURED (1 - normalized Levenshtein edit distance)"
+      },
+      "overallMeanNED": {
+        "value": 0.586,
+        "dataSource": "MEASURED"
+      },
+      "mathCases0107MeanSimilarity": {
+        "value": 0.274,
+        "count": 7,
+        "dataSource": "MEASURED"
+      },
+      "frenchCases0809MeanSimilarity": {
+        "value": 0.869,
+        "count": 2,
+        "dataSource": "MEASURED"
+      },
+      "tableCases10MeanSimilarity": {
+        "value": 0.482,
+        "count": 1,
+        "dataSource": "MEASURED"
+      }
+    }
+  },
+  "pix2texDesignEstimates": {
+    "dataSource": "DESIGN_ESTIMATE — pix2tex was NOT executed on these fixtures",
+    "modelSizeNotes": "RapidAI/RapidLaTeXOCR publishes encoder.onnx + decoder.onnx + image_resizer.onnx. Total FP32 size is ~100-300 MB per published sources. Int8 quantized size is unknown without performing quantization.",
+    "startupNotes": "ONNX Runtime Web initialization + parsing large FP32 protobuf tensors into WASM memory. No measured value available.",
+    "latencyNotes": "Autoregressive decoding requires 1 forward pass per output token. For a typical formula (20-60 tokens) on single-threaded WASM CPU, this would likely require multiple seconds. No measured value available.",
+    "memoryNotes": "WASM linear memory for ~100-300 MB of model weights plus KV-cache. Exact consumption unknown without measurement.",
+    "accuracyNotes": "pix2tex is trained exclusively on cropped mathematical formulas from arXiv (im2latex-100k dataset). It has no training data for natural language prose, French text, accented characters, or tabular layouts. Expected to perform well on isolated math formulas (cases 01-07) and fail on prose/tables (cases 08-10). This is a domain assessment, NOT a measured result.",
+    "trainingDomain": "Cropped mathematical formula images from im2latex-100k (arXiv papers). No natural language, no French, no tables.",
+    "expectedStrengths": "Isolated mathematical formulas with standard LaTeX notation",
+    "expectedWeaknesses": "Natural language text, accented characters, tabular layouts, mixed text-and-math documents",
+    "browserFeasibilityNotes": "Chrome MV3 popup pages are destroyed when the user clicks outside. Autoregressive decoding taking multiple seconds risks popup termination mid-inference. SharedArrayBuffer (needed for multi-threaded ONNX) requires COOP/COEP headers which extension popups cannot set."
+  },
+  "fixtures": [
+    {
+      "id": "case_01_pythagoras",
+      "name": "Pythagorean Equation",
+      "category": "math_single_line",
+      "groundTruth": "x^2 + y^2 = z^2",
+      "tesseract": {
+        "rawOcrText": "ety? = 2?",
+        "parsedOutput": "\\[ ety? = 2? \\]",
+        "ocrConfidence": 20,
+        "qualityGrade": "uncertain",
+        "warningCount": 2,
+        "latencyMs": 135,
+        "rawSimilarity": 0.267,
+        "parsedSimilarity": 0.2,
+        "normalizedEditDistance": 0.8,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_02_fraction",
+      "name": "Algebraic Fraction",
+      "category": "math_fraction",
+      "groundTruth": "\\frac{a + b}{c}",
+      "tesseract": {
+        "rawOcrText": "a+b c",
+        "parsedOutput": "\\[ a+b \\] c",
+        "ocrConfidence": 76,
+        "qualityGrade": "high",
+        "warningCount": 0,
+        "latencyMs": 57,
+        "rawSimilarity": 0.267,
+        "parsedSimilarity": 0.267,
+        "normalizedEditDistance": 0.733,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_03_sqrt",
+      "name": "Radical Expression",
+      "category": "math_radical",
+      "groundTruth": "\\sqrt{x^2 + 1}",
+      "tesseract": {
+        "rawOcrText": "Vzæx? +1",
+        "parsedOutput": "\\[ Vzæx? +1 \\]",
+        "ocrConfidence": 67,
+        "qualityGrade": "uncertain",
+        "warningCount": 2,
+        "latencyMs": 36,
+        "rawSimilarity": 0.286,
+        "parsedSimilarity": 0.286,
+        "normalizedEditDistance": 0.714,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_04_integral",
+      "name": "Definite Integral with Limits",
+      "category": "math_2d_limits",
+      "groundTruth": "\\int_{0}^{1} x^2 dx",
+      "tesseract": {
+        "rawOcrText": "1 [ x?dx 0",
+        "parsedOutput": "\\[ 1 \\] \\[ [ x?dx \\] \\[ 0 \\]",
+        "ocrConfidence": 79,
+        "qualityGrade": "uncertain",
+        "warningCount": 2,
+        "latencyMs": 34,
+        "rawSimilarity": 0.105,
+        "parsedSimilarity": 0.143,
+        "normalizedEditDistance": 0.857,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_05_summation",
+      "name": "Summation with Bounds",
+      "category": "math_2d_limits",
+      "groundTruth": "\\sum_{i=1}^{n} i",
+      "tesseract": {
+        "rawOcrText": "n > i=1",
+        "parsedOutput": "n \\[ > \\] \\[ i=1 \\]",
+        "ocrConfidence": 60,
+        "qualityGrade": "medium",
+        "warningCount": 1,
+        "latencyMs": 38,
+        "rawSimilarity": 0.188,
+        "parsedSimilarity": 0.105,
+        "normalizedEditDistance": 0.895,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_06_matrix",
+      "name": "2x2 Matrix",
+      "category": "math_matrix",
+      "groundTruth": "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+      "tesseract": {
+        "rawOcrText": "(3 4)",
+        "parsedOutput": "\\[ (3 4) \\]",
+        "ocrConfidence": 65,
+        "qualityGrade": "medium",
+        "warningCount": 1,
+        "latencyMs": 41,
+        "rawSimilarity": 0.068,
+        "parsedSimilarity": 0.136,
+        "normalizedEditDistance": 0.864,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_07_system",
+      "name": "System of Equations",
+      "category": "math_multiline",
+      "groundTruth": "\\begin{cases} 2x + y = 5 \\\\ x - 3y = 2 \\end{cases}",
+      "tesseract": {
+        "rawOcrText": "2ez+y=5 z—3y=2",
+        "parsedOutput": "\\begin{cases} 2ez+y=5 \\\\ z—3y=2 \\end{cases}",
+        "ocrConfidence": 22,
+        "qualityGrade": "uncertain",
+        "warningCount": 1,
+        "latencyMs": 71,
+        "rawSimilarity": 0.2,
+        "parsedSimilarity": 0.78,
+        "normalizedEditDistance": 0.22,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_08_french_math",
+      "name": "French Paragraph with Inline Math",
+      "category": "mixed_text_math",
+      "groundTruth": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : I = \\int_{0}^{1} f(x) dx. Calculer la valeur moyenne de f.",
+      "tesseract": {
+        "rawOcrText": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : 1 I= Î f(æ)dx 0 Calculer la valeur moyenne de f.",
+        "parsedOutput": "Soit f une fonction continue sur l'intervalle [0, 1]. On considère l'intégrale suivante : \\[ 1 \\] \\[ I= Î f(æ)dx \\] \\[ 0 \\] Calculer la valeur moyenne de f.",
+        "ocrConfidence": 88,
+        "qualityGrade": "uncertain",
+        "warningCount": 2,
+        "latencyMs": 233,
+        "rawSimilarity": 0.878,
+        "parsedSimilarity": 0.827,
+        "normalizedEditDistance": 0.173,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_09_french_accents",
+      "name": "French Accented Text",
+      "category": "french_prose",
+      "groundTruth": "Documentation Français. Voici des caractères accentués : é, è, à, ç, œ, ù. L'élève étudie attentivement le théorème où apparaît le paramètre déjà défini.",
+      "tesseract": {
+        "rawOcrText": "Documentation Frangais Voici des caractères accentués : é, à, a, ¢, ce, U. L'élève étudie attentivement le théorème où apparaît le paramètre déjà défini.",
+        "parsedOutput": "Documentation Frangais Voici des caractères accentués : é, à, a, ¢, ce, U. L'élève étudie attentivement le théorème où apparaît le paramètre \\[ déjà défini. \\]",
+        "ocrConfidence": 91,
+        "qualityGrade": "high",
+        "warningCount": 0,
+        "latencyMs": 232,
+        "rawSimilarity": 0.948,
+        "parsedSimilarity": 0.912,
+        "normalizedEditDistance": 0.088,
+        "dataSource": "MEASURED"
+      }
+    },
+    {
+      "id": "case_10_table_math",
+      "name": "Table with Mathematical Expressions",
+      "category": "tabular_math",
+      "groundTruth": "\\begin{tabular}{lll} Fonction & Dérivée & Primitive \\\\ f(x) = x^2 & f'(x) = 2x & F(x) = \\frac{1}{3}x^3 \\\\ g(x) = \\sin(x) & g'(x) = \\cos(x) & G(x) = -\\cos(x) \\end{tabular}",
+      "tesseract": {
+        "rawOcrText": "Fonction Dérivée Primitive f@=e J@=2 Fla) = g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a)",
+        "parsedOutput": "Fonction Dérivée Primitive \\[ f@=e J@=2 Fla) = \\] \\[ g(x) =sin(e) g(x) =cos(a) G(x) = — cos(a) \\]",
+        "ocrConfidence": 50,
+        "qualityGrade": "uncertain",
+        "warningCount": 1,
+        "latencyMs": 250,
+        "rawSimilarity": 0.435,
+        "parsedSimilarity": 0.482,
+        "normalizedEditDistance": 0.518,
+        "dataSource": "MEASURED"
+      }
+    }
+  ]
+}

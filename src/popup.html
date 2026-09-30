@@ -70,6 +70,11 @@
 
     <!-- Image mode section -->
     <div class="tab-panel" id="panel-image" hidden>
+      <div class="experimental-banner" role="note">
+        <span class="experimental-badge">Experimental Math</span>
+        <span class="experimental-text">Text OCR (English &amp; French) is reliable. Mathematical formula recognition is experimental; review and edit output below before copying.</span>
+      </div>
+
       <div class="image-dropzone" id="image-dropzone">
         <input type="file" id="image-file" accept=".png,.jpg,.jpeg,.webp,.bmp" />
         <div class="dropzone-prompt" id="dropzone-prompt">
@@ -122,11 +127,13 @@
       <div class="output-header">
         <div class="output-title-group">
           <span>LaTeX Output</span>
+          <span class="editable-badge" title="Directly editable in the box below">✎ Editable</span>
           <span id="source-indicator" class="source-indicator"></span>
         </div>
         <button id="copy-btn" class="copy-btn" title="Copy to clipboard">📋 Copy</button>
       </div>
-      <textarea id="output" readonly></textarea>
+      <textarea id="output" placeholder="LaTeX output appears here. You can directly edit and fine-tune expressions before copying..." aria-label="Editable LaTeX Output" spellcheck="false"></textarea>
+      <div class="output-hint">💡 Tip: You can freely edit and refine equations or text above before copying.</div>
       <div id="copied-toast" class="toast" hidden>✓ Copied to clipboard!</div>
     </div>
   </div>

@@ -186,6 +186,54 @@ describe("Scenarios 6 & 7: Paste Mode Conversion", () => {
     assert.ok(clean.includes("% \\usepackage{calc}"), "Calc package suggested for real dimensions");
     assert.ok(clean.includes("% \\usepackage{array}"), "Array package suggested");
   });
+
+  it("Regression: French text with Ø bullets and colon spacing produces clean paste-ready LaTeX", async () => {
+    // 1. Plain text / markdown paste
+    const plainInput = "Ø  Corps : laiton CW617N\n\nØ  Pression : 0.2 à 16 bars\n\nØ  Débit nominal : 70L/min";
+    const rawPlain = await runPandocConvert(pandoc, { format: "markdown", text: plainInput });
+    const cleanPlain = cleanupLatex(rawPlain);
+
+    assert.ok(!cleanPlain.includes("\\foreignlanguage"), "Must not contain \\foreignlanguage");
+    assert.ok(!cleanPlain.includes("Ø{~ }"), "Must not contain malformed Ø{~ }");
+    assert.ok(!cleanPlain.includes("{Ø}"), "Must not contain bare {Ø}");
+    assert.ok(!cleanPlain.includes("Corps~:"), "Must not contain Corps~:");
+    assert.ok(!cleanPlain.includes("nominal~:"), "Must not contain nominal~:");
+    assert.ok(cleanPlain.includes("Corps : laiton CW617N"), "Line 1 preserved cleanly");
+    assert.ok(cleanPlain.includes("Pression : 0.2 à 16 bars"), "Line 2 with à preserved");
+    assert.ok(cleanPlain.includes("Débit nominal : 70L/min"), "Line 3 with é preserved");
+
+    // Verify 3 distinct paragraphs/lines
+    const plainLines = cleanPlain.trim().split(/\n\s*\n/);
+    assert.equal(plainLines.length, 3, "Must preserve three separate lines/paragraphs");
+
+    // 2. Rich HTML / Word paste format with mso-spacerun and lang attributes
+    const htmlWordInput = '<p class="MsoNormal"><span lang="FR"><span>Ø<span style="mso-spacerun:yes">&nbsp; </span></span></span><span lang="FR">Corps&nbsp;: laiton CW617N</span></p><p class="MsoNormal"><span lang="FR"><span>Ø<span style="mso-spacerun:yes">&nbsp; </span></span></span><span lang="FR">Pression&nbsp;: 0.2 à 16 bars</span></p><p class="MsoNormal"><span lang="FR"><span>Ø<span style="mso-spacerun:yes">&nbsp; </span></span></span><span lang="FR">Débit nominal&nbsp;: 70L/min</span></p>';
+    const rawHtml = await runPandocConvert(pandoc, { format: "html", text: htmlWordInput });
+    const cleanHtml = cleanupLatex(rawHtml);
+
+    assert.ok(!cleanHtml.includes("\\foreignlanguage"), "HTML must not generate \\foreignlanguage");
+    assert.ok(!cleanHtml.includes("Ø{~ }"), "HTML must not contain Ø{~ }");
+    assert.ok(!cleanHtml.includes("{Ø}"), "HTML must not contain {Ø}");
+    assert.ok(!cleanHtml.includes("Corps~:"), "HTML must not contain Corps~:");
+    assert.ok(!cleanHtml.includes("nominal~:"), "HTML must not contain nominal~:");
+    assert.ok(cleanHtml.includes("Corps : laiton CW617N"), "Line 1 preserved cleanly");
+    assert.ok(cleanHtml.includes("Pression : 0.2 à 16 bars"), "Line 2 with à preserved");
+    assert.ok(cleanHtml.includes("Débit nominal : 70L/min"), "Line 3 with é preserved");
+
+    const htmlLines = cleanHtml.trim().split(/\n\s*\n/);
+    assert.equal(htmlLines.length, 3, "HTML must preserve three separate lines/paragraphs");
+  });
+
+  it("Preserves special Unicode characters (Ø, €, °, ±, ≤, ≥, ×, μ, é, è, ê, ë, à, â, ù, û, ç, œ, É, À, Ç)", async () => {
+    const unicodeInput = "<p>é è ê ë à â ù û ç œ Ø É À Ç € ° ± ≤ ≥ × μ</p>";
+    const raw = await runPandocConvert(pandoc, { format: "html", text: unicodeInput });
+    const clean = cleanupLatex(raw);
+
+    const chars = ["é", "è", "ê", "ë", "à", "â", "ù", "û", "ç", "œ", "Ø", "É", "À", "Ç", "€", "°", "±", "≤", "≥", "×", "μ"];
+    for (const ch of chars) {
+      assert.ok(clean.includes(ch), `Character ${ch} must be preserved intact without distortion`);
+    }
+  });
 });
 
 describe("Scenarios 10, 11, 12: UI Interactivity & Edge Cases", () => {

@@ -44,6 +44,100 @@ function unwrapPandocbounded(latex: string): string {
   return result;
 }
 
+/**
+ * Unwraps `\foreignlanguage{<lang>}{<content>}` and `\begin{otherlanguage}{<lang>}` wrappers.
+ * For paste-ready LaTeX fragments, redundant language annotations clutter output
+ * and prevent seamless pasting into standard documents.
+ * Handles balanced braces correctly for arbitrary nested LaTeX content.
+ */
+function unwrapForeignLanguage(latex: string): string {
+  let result = latex;
+  const marker = '\\foreignlanguage{';
+
+  while (true) {
+    const idx = result.indexOf(marker);
+    if (idx === -1) break;
+
+    // Find the end of the language argument: \foreignlanguage{<lang>}{
+    const langCloseIdx = result.indexOf('}', idx + marker.length);
+    if (langCloseIdx === -1 || result[langCloseIdx + 1] !== '{') {
+      break;
+    }
+
+    const contentStart = langCloseIdx + 2;
+    let depth = 1;
+    let i = contentStart;
+
+    while (i < result.length && depth > 0) {
+      if (result[i] === '{') depth++;
+      else if (result[i] === '}') depth--;
+      i++;
+    }
+
+    if (depth !== 0) {
+      break;
+    }
+
+    const inner = result.substring(contentStart, i - 1);
+    result = result.substring(0, idx) + inner + result.substring(i);
+  }
+
+  // Also strip block-level otherlanguage environments
+  result = result.replace(/\\begin\{otherlanguage\*?\}\{[^}]*\}\s*/g, '');
+  result = result.replace(/\\end\{otherlanguage\*?\}\s*/g, '');
+
+  // Remove empty braces {} left between unwrapped commands
+  result = result.replace(/\{\}/g, '');
+
+  return result;
+}
+
+/**
+ * Cleans unnecessary tildes introduced by Word French typography metadata
+ * without affecting standard semantic LaTeX ties like Fig.~1 or math.
+ */
+function cleanFrenchPunctuationAndTildes(latex: string): string {
+  let result = latex;
+
+  // 1. Unwrap empty/spacing groups like {~ } or { } or {~}
+  result = result.replace(/\{\s*~*\s*\}/g, ' ');
+
+  // 2. Normalize tildes before French high punctuation marks: ~: -> " :", ~; -> " ;", ~! -> " !", ~? -> " ?"
+  result = result.replace(/~([:;!?»])/g, ' $1');
+  result = result.replace(/(«)~/g, '$1 ');
+
+  // 3. Normalize tilde followed by whitespace: "~ " -> " "
+  result = result.replace(/~[ \t]+/g, ' ');
+
+  // 4. Normalize tildes following bullet symbols or non-ASCII characters at line start
+  result = result.replace(/(^[ \t]*[^\w\s\\])[ \t]*~[ \t]*/gmu, '$1  ');
+
+  return result;
+}
+
+/**
+ * Unwraps redundant grouping braces around plain text and Unicode symbols
+ * introduced by Pandoc's span/mso-spacerun mapping (e.g. {{Ø}} or {Ø } -> Ø).
+ * Does NOT touch arguments to LaTeX commands (\textbf{...}) or math sub/superscripts.
+ */
+function unwrapRedundantBraces(latex: string): string {
+  let result = latex;
+
+  // Remove bare empty braces {} left between unwrapped commands
+  result = result.replace(/\{\}/g, '');
+
+  // Unwrap double braces {{...}} -> {...}
+  while (/\{\{([^{}]+)\}\}/.test(result)) {
+    result = result.replace(/\{\{([^{}]+)\}\}/g, '{$1}');
+  }
+
+  // Unwrap bare braces around content not preceded by a backslash macro, ^ or _
+  result = result.replace(/(^|[\s\n(])\{([^{}\\]+)\}/gu, '$1$2');
+  result = result.replace(/(^|[\s\n(])\{([^{}\\]+)\}/gu, '$1$2');
+
+  return result;
+}
+
 /** Collapse 3+ consecutive blank lines down to at most 2. */
 function collapseBlankLines(latex: string): string {
   return latex.replace(/([ \t]*\n){3,}/g, '\n\n');
@@ -163,6 +257,9 @@ export function cleanupLatex(raw: string): string {
   let result = raw;
   result = removeTightlist(result);
   result = unwrapPandocbounded(result);
+  result = unwrapForeignLanguage(result);
+  result = cleanFrenchPunctuationAndTildes(result);
+  result = unwrapRedundantBraces(result);
   result = fixTableLists(result);
   result = collapseBlankLines(result);
   result = trimTrailingWhitespace(result);
@@ -174,6 +271,9 @@ export function cleanupLatex(raw: string): string {
 export {
   removeTightlist,
   unwrapPandocbounded,
+  unwrapForeignLanguage,
+  cleanFrenchPunctuationAndTildes,
+  unwrapRedundantBraces,
   fixTableLists,
   collapseBlankLines,
   trimTrailingWhitespace,

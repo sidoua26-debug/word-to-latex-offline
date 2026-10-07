@@ -32,7 +32,11 @@ describe('runPandocConvert branching logic', () => {
     const output = await runPandocConvert(mockPandoc, input);
 
     assert.equal(output, '\\textbf{Converted HTML}');
-    assert.deepEqual(capturedOptions, { from: 'html', to: 'latex' });
+    assert.deepEqual(capturedOptions, {
+      from: 'html-native_spans-native_divs',
+      to: 'latex',
+      wrap: 'none',
+    });
     assert.equal(capturedStdin, '<p><b>Hello</b></p>');
     assert.deepEqual(capturedFiles, {});
   });
@@ -65,7 +69,11 @@ describe('runPandocConvert branching logic', () => {
     const output = await runPandocConvert(mockPandoc, input);
 
     assert.equal(output, '\\section{Heading}');
-    assert.deepEqual(capturedOptions, { from: 'markdown', to: 'latex' });
+    assert.deepEqual(capturedOptions, {
+      from: 'markdown-native_spans-native_divs',
+      to: 'latex',
+      wrap: 'none',
+    });
     assert.equal(capturedStdin, '# Heading');
     assert.deepEqual(capturedFiles, {});
   });
@@ -103,6 +111,7 @@ describe('runPandocConvert branching logic', () => {
     assert.deepEqual(capturedOptions, {
       from: 'docx',
       to: 'latex',
+      wrap: 'none',
       'input-files': ['input.docx'],
     });
     assert.equal(capturedStdin, null);

@@ -10,6 +10,9 @@ import {
   cleanupLatex,
   removeTightlist,
   unwrapPandocbounded,
+  unwrapForeignLanguage,
+  cleanFrenchPunctuationAndTildes,
+  unwrapRedundantBraces,
   collapseBlankLines,
   trimTrailingWhitespace,
   prependPackageComments,
@@ -200,8 +203,71 @@ describe('fixTableLists', () => {
   });
 });
 
+describe('unwrapForeignLanguage', () => {
+  it('unwraps simple \\foreignlanguage{french}{...}', () => {
+    const input = '\\foreignlanguage{french}{Corps : laiton CW617N}';
+    assert.equal(unwrapForeignLanguage(input), 'Corps : laiton CW617N');
+  });
+
+  it('handles nested braces inside content', () => {
+    const input = '\\foreignlanguage{french}{\\textbf{Corps} : laiton {CW617N}}';
+    assert.equal(unwrapForeignLanguage(input), '\\textbf{Corps} : laiton {CW617N}');
+  });
+
+  it('unwraps multiple occurrences and cleans empty braces', () => {
+    const input = '\\foreignlanguage{french}{Ø}{}\\foreignlanguage{french}{Corps : laiton}';
+    assert.equal(unwrapForeignLanguage(input), 'ØCorps : laiton');
+  });
+
+  it('unwraps \\begin{otherlanguage}{french} environments', () => {
+    const input = '\\begin{otherlanguage}{french}\nTexte en français\n\\end{otherlanguage}';
+    assert.equal(unwrapForeignLanguage(input).trim(), 'Texte en français');
+  });
+});
+
+describe('cleanFrenchPunctuationAndTildes', () => {
+  it('normalizes tildes before colons and high punctuation', () => {
+    const input = 'Corps~: laiton; Pression~: 16 bars? Débit~: 70L/min! Vrai~; faux~: «~test~»';
+    const expected = 'Corps : laiton; Pression : 16 bars? Débit : 70L/min! Vrai ; faux : « test »';
+    assert.equal(cleanFrenchPunctuationAndTildes(input), expected);
+  });
+
+  it('unwraps redundant spacing groups like {~ }', () => {
+    const input = 'Ø{~ }Corps : laiton';
+    assert.equal(cleanFrenchPunctuationAndTildes(input), 'Ø Corps : laiton');
+  });
+
+  it('normalizes leading bullet symbols with tildes', () => {
+    const input = 'Ø~ Corps : laiton\nØ~ Pression : 0.2 bars\nØ~ Débit : 70L/min';
+    assert.ok(!cleanFrenchPunctuationAndTildes(input).includes('~'));
+    assert.ok(cleanFrenchPunctuationAndTildes(input).includes('Ø Corps : laiton'));
+  });
+
+  it('preserves standard LaTeX semantic ties like Fig.~1 and p.~42', () => {
+    const input = 'Voir Fig.~1 et p.~42 pour plus de détails.';
+    assert.equal(cleanFrenchPunctuationAndTildes(input), input);
+  });
+});
+
+describe('unwrapRedundantBraces', () => {
+  it('unwraps bare braces around standalone symbols and Unicode characters', () => {
+    const input = '{Ø} {€} {°} {±} {≤} {≥} {×} {μ} {é} {à}';
+    assert.equal(unwrapRedundantBraces(input), 'Ø € ° ± ≤ ≥ × μ é à');
+  });
+
+  it('unwraps nested double braces {{...}}', () => {
+    const input = '{{Ø}} et {{text}}';
+    assert.equal(unwrapRedundantBraces(input), 'Ø et text');
+  });
+
+  it('preserves LaTeX macro arguments, math superscripts, and subscripts', () => {
+    const input = '\\textbf{bold text} \\emph{italic} x^{2} y_{1} \\frac{1}{2}';
+    assert.equal(unwrapRedundantBraces(input), input);
+  });
+});
+
 describe('cleanupLatex (full pipeline)', () => {
-  it('applies all cleanup steps', () => {
+  it('applies all cleanup steps including tightlist, pandocbounded, and package comments', () => {
     const input = [
       '\\pandocbounded{\\begin{itemize}}',
       '\\tightlist',
@@ -229,5 +295,34 @@ describe('cleanupLatex (full pipeline)', () => {
     assert.ok(!result.includes('\n\n\n'));
     // package comment added
     assert.ok(result.includes('% \\usepackage{booktabs}'));
+  });
+
+  it('cleans exact user French bug input with foreignlanguage and malformed Ø', () => {
+    const rawInput = [
+      '\\foreignlanguage{french}{{Ø{~ }}}{}\\foreignlanguage{french}{Corps~:',
+      'laiton CW617N}',
+      '',
+      '\\foreignlanguage{french}{{Ø{~ }}}{}\\foreignlanguage{french}{Pression~:',
+      '0.2 à 16 bars}',
+      '',
+      '\\foreignlanguage{french}{{Ø{~ }}}{}\\foreignlanguage{french}{Débit',
+      'nominal~: 70L/min}',
+    ].join('\n');
+
+    const result = cleanupLatex(rawInput);
+
+    // No foreignlanguage
+    assert.ok(!result.includes('\\foreignlanguage'));
+    // No malformed braces or tildes around Ø
+    assert.ok(!result.includes('Ø{~ }'));
+    assert.ok(!result.includes('{Ø}'));
+    assert.ok(!result.includes('Corps~:'));
+    assert.ok(!result.includes('nominal~:'));
+    // Text and accents preserved
+    assert.ok(result.includes('Corps :'));
+    assert.ok(result.includes('Pression :'));
+    assert.ok(result.includes('0.2 à 16 bars'));
+    assert.ok(result.includes('Débit'));
+    assert.ok(result.includes('70L/min'));
   });
 });

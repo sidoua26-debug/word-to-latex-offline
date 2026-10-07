@@ -51,6 +51,7 @@ export async function runPandocConvert(
       {
         from: 'docx',
         to: 'latex',
+        wrap: 'none',
         'input-files': [filename],
       },
       null,
@@ -58,10 +59,17 @@ export async function runPandocConvert(
     );
   } else {
     // format is 'html' or 'markdown'
+    // Disable native_spans and native_divs to prevent Pandoc from generating
+    // redundant \foreignlanguage wrappers and nested grouping braces for Word styling spans
+    const fromFormat = input.format === 'html'
+      ? 'html-native_spans-native_divs'
+      : 'markdown-native_spans-native_divs';
+
     result = await pandoc.convert(
       {
-        from: input.format,
+        from: fromFormat,
         to: 'latex',
+        wrap: 'none',
       },
       input.text,
       {}
